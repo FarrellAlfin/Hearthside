@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { createClient } from '@supabase/supabase-js'  //
+
+const supabase = createClient('https://kxajjlrjgrabtmyksqrq.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4YWpqbHJqZ3JhYnRteWtzcXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjIyMzMsImV4cCI6MjA4OTMzODIzM30.UCUOnwpyP4oBJyHhaCEM4kym_UlDY32a2SWP3x8atQU')
 
 const C = {
   primary:"#C4622D", primaryDark:"#A05025", primaryBg:"#FBEEE6",
@@ -83,26 +86,38 @@ function Toggle({ val, onChange }) {
 // ──────────────────────────────────────────────────────────────────────────────
 // AUTH SCREEN
 // ──────────────────────────────────────────────────────────────────────────────
+function AuthInput({ label, ph, type="text", value, onChange, onEnter }) {
+  return (
+    <div style={{ marginBottom:13 }}>
+      <label style={{ fontSize:11, fontWeight:600, color:C.muted, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.06em" }}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={ph}
+        onKeyDown={e=>e.key==="Enter"&&onEnter()}
+        style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:13, color:C.text, background:C.bg, outline:"none", boxSizing:"border-box" }}/>
+    </div>
+  );
+}
+
 function AuthScreen({ onAuth }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ email:"", password:"", name:"", business:"" });
   const [err,  setErr]  = useState("");
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.email || !form.password) { setErr("Please fill in all required fields."); return; }
-    if (mode==="signup" && !form.name)  { setErr("Please enter your full name."); return; }
     setErr("");
-    onAuth({ name:form.name||"Maria Santos", email:form.email, business:form.business||"Maria's Home Bakery" });
+    if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({ email:form.email, password:form.password });
+      if (error) { setErr(error.message); return; }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email:form.email, password:form.password });
+      if (error) { setErr(error.message); return; }
+    }
+    onAuth({ name:form.name, email:form.email, business:form.business });
   };
-
-  const Inp = ({ k, label, ph, type="text" }) => (
-    <div style={{ marginBottom:13 }}>
-      <label style={{ fontSize:11, fontWeight:600, color:C.muted, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.06em" }}>{label}</label>
-      <input type={type} value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}
-        placeholder={ph} onKeyDown={e=>e.key==="Enter"&&submit()}
-        style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:13, color:C.text, background:C.bg, outline:"none", boxSizing:"border-box" }}/>
-    </div>
-  );
 
   return (
     <div style={{ minHeight:"100vh", background:C.sidebar, display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem", fontFamily:"'Outfit', sans-serif" }}>
@@ -121,10 +136,10 @@ function AuthScreen({ onAuth }) {
             }}>{m==="login"?"Sign In":"Create Account"}</button>
           ))}
         </div>
-        {mode==="signup" && <Inp k="name"     label="Full Name *"   ph="e.g. Maria Santos"/>}
-        {mode==="signup" && <Inp k="business" label="Bakery Name"   ph="e.g. Maria's Home Bakery"/>}
-        <Inp k="email"    label="Email *"    ph="your@email.com" type="email"/>
-        <Inp k="password" label="Password *" ph="••••••••"        type="password"/>
+        {mode==="signup" && <AuthInput label="Full Name *"    ph="e.g. Maria Santos"        value={form.name}     onChange={e=>setForm({...form,name:e.target.value})}     onEnter={submit}/>}
+        {mode==="signup" && <AuthInput label="Bakery Name"    ph="e.g. Maria's Home Bakery" value={form.business} onChange={e=>setForm({...form,business:e.target.value})} onEnter={submit}/>}
+        <AuthInput label="Email *"    ph="your@email.com" type="email"     value={form.email}    onChange={e=>setForm({...form,email:e.target.value})}    onEnter={submit}/>
+        <AuthInput label="Password *" ph="••••••••"        type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} onEnter={submit}/>
         {err && <p style={{ color:C.danger, fontSize:12, margin:"0 0 12px" }}>{err}</p>}
         <button onClick={submit} style={{ width:"100%", padding:"12px", background:C.primary, color:"#FFF", border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:"pointer", marginBottom:"1rem" }}>
           {mode==="login"?"Sign In →":"Start Free Trial →"}
