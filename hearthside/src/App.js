@@ -84,7 +84,6 @@ const CHARITIES = [
   { id:4, name:"The Stop Community Food", emoji:"🌱", desc:"Community food programs in Davenport.", hood:"Davenport" },
 ];
 const HOODS = ["All","Leslieville","Kensington","Chinatown","Little Portugal","Brampton","Roncesvalles"];
-
 // eslint-disable-next-line no-unused-vars
 const CHAT_INIT = [
   { id:1, seller:"Maria's Home Bakery",  hood:"Leslieville",  emoji:"🍞", time:"8:02am",  msg:"Fresh sourdough just out of the oven! 8 loaves available today 🔥 Order by noon for afternoon pickup." },
@@ -871,8 +870,12 @@ function SellerApp({ user, onSignOut }) {
   const [products,        setProducts]        = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   // Shared finances state — read by Dashboard, written by Finances
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const now = new Date();
+  const [finMonth,    setFinMonth]    = useState(`${MONTHS[now.getMonth()]} ${now.getFullYear()}`);
   const [finRevenue,  setFinRevenue]  = useState("");
   const [finCosts,    setFinCosts]    = useState([]);
+  const [finHistory,  setFinHistory]  = useState([]); // [{month, revenue, costs:[]}]
 
   useEffect(()=>{
     if (!user?.id) { setProducts([]); setLoadingProducts(false); return; }
@@ -1153,7 +1156,6 @@ function SellerApp({ user, onSignOut }) {
 
   // ── SELLER DASHBOARD ──
   const Dashboard = () => {
-  // eslint-disable-next-line no-unused-vars
     const top         = [...products].sort((a,b)=>(b.sold||0)-(a.sold||0))[0]||products[0];
     const rev         = parseFloat(finRevenue)||0;
     const totalCosts  = finCosts.reduce((s,c)=>s+c.amount,0);
@@ -1177,7 +1179,7 @@ function SellerApp({ user, onSignOut }) {
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,minmax(0,1fr))", gap:10, marginBottom:"1.5rem" }}>
-          <KPI label="Revenue This Month" value={rev>0?`$${rev.toLocaleString()}`:"—"} sub={rev>0?"From Finances tab":"Add in Finances"} color={C.accent}/>
+          <KPI label={finMonth||"This Month"} value={rev>0?`$${rev.toLocaleString()}`:"—"} sub={rev>0?"From Finances":"Add in Finances"} color={C.accent}/>
           <KPI label="Total Costs"        value={totalCosts>0?`$${totalCosts.toFixed(2)}`:"—"} sub={`${finCosts.length} cost entr${finCosts.length===1?"y":"ies"}`} color={C.warning}/>
           <KPI label="Net Profit"         value={rev>0&&totalCosts>0?`$${profit.toFixed(2)}`:"—"} sub={margin?`${margin}% margin`:""} color={profit>=0?C.success:C.danger}/>
           <KPI label="Products Listed"    value={products.length} sub={`${products.filter(p=>!p.availability||p.availability==="available").length} available`}/>
@@ -1715,6 +1717,33 @@ function SellerApp({ user, onSignOut }) {
     const [newCat,    setNewCat]    = useState("ingredients");
     const [newLabel,  setNewLabel]  = useState("");
     const [newAmt,    setNewAmt]    = useState("");
+    const [showStmt,  setShowStmt]  = useState(false);
+
+    const saveMonthToHistory = () => {
+      if (!finRevenue && finCosts.length===0) return;
+      setFinHistory(h=>{
+        const existing = h.findIndex(m=>m.month===finMonth);
+        const entry = { month:finMonth, revenue:parseFloat(finRevenue)||0, costs:[...finCosts] };
+        if (existing>=0) { const n=[...h]; n[existing]=entry; return n; }
+        return [...h, entry];
+      });
+    };
+
+    const loadMonth = (entry) => {
+      saveMonthToHistory();
+      setFinMonth(entry.month);
+      setFinRevenue(String(entry.revenue||""));
+      setFinCosts(entry.costs||[]);
+    };
+
+    const startNewMonth = () => {
+      saveMonthToHistory();
+      const now2 = new Date();
+      const next = `${MONTHS[now2.getMonth()]} ${now2.getFullYear()}`;
+      setFinMonth(next);
+      setFinRevenue("");
+      setFinCosts([]);
+    };
 
     const addCost = () => {
       if (!newAmt||parseFloat(newAmt)<=0) return;
@@ -1752,7 +1781,64 @@ function SellerApp({ user, onSignOut }) {
 
     return (
       <div style={{ padding:"2rem" }}>
-        <h1 style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 1.5rem", letterSpacing:"-0.02em" }}>Finances</h1>
+        {/* Header with month selector */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem" }}>
+          <div>
+            <h1 style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 3px", letterSpacing:"-0.02em" }}>Finances</h1>
+            <p style={{ fontSize:13, color:C.textMuted, margin:0 }}>Tracking: <strong style={{ color:C.accent }}>{finMonth}</strong></p>
+          </div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <button onClick={()=>setShowStmt(s=>!s)} style={{ background:showStmt?C.accentBg:"transparent", border:`1px solid ${showStmt?C.accent:C.border}`, color:showStmt?C.accent:C.textMuted, borderRadius:5, padding:"8px 14px", fontSize:12, fontWeight:600, cursor:"pointer" }}>
+              {showStmt?"Hide Statements":"Monthly Statements"}
+            </button>
+            <button onClick={()=>{ saveMonthToHistory(); startNewMonth(); }} style={{ background:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+              + New Month
+            </button>
+          </div>
+        </div>
+
+        {/* Monthly Statements Panel */}
+        {showStmt && (
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:"1.25rem" }}>
+            <p style={{ fontWeight:600, fontSize:13, color:C.text, margin:"0 0 12px" }}>Monthly Statements</p>
+            {finHistory.length===0 ? (
+              <p style={{ fontSize:13, color:C.textMuted, margin:0 }}>No saved months yet. Click "New Month" to save the current month and start a new one.</p>
+            ) : (
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                  <thead>
+                    <tr style={{ borderBottom:`1px solid ${C.border}` }}>
+                      {["Month","Revenue","Costs","Profit","Margin",""].map(h=>(
+                        <th key={h} style={{ textAlign:"left", padding:"8px 12px", color:C.textMuted, fontWeight:600, fontSize:10, textTransform:"uppercase", letterSpacing:"0.07em" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...finHistory].reverse().map((m,i)=>{
+                      const mCosts = m.costs.reduce((s,c)=>s+c.amount,0);
+                      const mProfit = m.revenue - mCosts;
+                      const mMargin = m.revenue>0?((mProfit/m.revenue)*100).toFixed(1):"—";
+                      return (
+                        <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
+                          <td style={{ padding:"9px 12px", color:C.text, fontWeight:600 }}>{m.month}</td>
+                          <td style={{ padding:"9px 12px", color:C.success, fontWeight:600 }}>${m.revenue.toFixed(2)}</td>
+                          <td style={{ padding:"9px 12px", color:C.warning }}>${mCosts.toFixed(2)}</td>
+                          <td style={{ padding:"9px 12px", color:mProfit>=0?C.success:C.danger, fontWeight:700 }}>${mProfit.toFixed(2)}</td>
+                          <td style={{ padding:"9px 12px" }}>
+                            <span style={{ background:parseFloat(mMargin)>=62?C.successBg:C.warningBg, color:parseFloat(mMargin)>=62?C.success:C.warning, padding:"2px 8px", borderRadius:4, fontSize:11, fontWeight:600 }}>{mMargin}{mMargin!=="—"?"%":""}</span>
+                          </td>
+                          <td style={{ padding:"9px 12px" }}>
+                            <button onClick={()=>loadMonth(m)} style={{ background:C.accentBg, border:`1px solid ${C.accentBorder}`, color:C.accent, borderRadius:4, padding:"3px 10px", fontSize:11, fontWeight:600, cursor:"pointer" }}>Load</button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* KPIs */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,minmax(0,1fr))", gap:10, marginBottom:"1.75rem" }}>
@@ -1768,7 +1854,12 @@ function SellerApp({ user, onSignOut }) {
             <p style={{ fontWeight:600, fontSize:13, color:C.text, margin:"0 0 12px" }}>Monthly Revenue</p>
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:14, color:C.textMuted, fontWeight:600 }}>$</span>
-              <input value={revenue} onChange={e=>setRevenue(e.target.value)} placeholder="0.00" type="number" min="0"
+              <input
+                value={revenue}
+                onChange={e=>{ const v=e.target.value; if(v===""||/^\d*\.?\d*$/.test(v)) setRevenue(v); }}
+                placeholder="0.00"
+                type="text"
+                inputMode="decimal"
                 style={{ width:"100%", padding:"12px 12px 12px 26px", border:`1px solid ${C.border}`, borderRadius:6, fontSize:16, fontWeight:700, color:C.text, background:C.surfaceHigh, outline:"none", boxSizing:"border-box" }}/>
             </div>
             <p style={{ fontSize:11, color:C.textMuted, margin:"8px 0 0" }}>Total sales collected this month</p>
@@ -1901,60 +1992,65 @@ function SellerApp({ user, onSignOut }) {
     const DAY_LABELS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"]];
     const save = () => { setSaved(true); setTimeout(()=>setSaved(false),2500); };
     return (
-      <div style={{ padding:"2rem", maxWidth:600 }}>
+      <div style={{ padding:"2rem" }}>
         <h1 style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 1.5rem", letterSpacing:"-0.02em" }}>Delivery Settings</h1>
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:12 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:pickup.enabled?"1rem":0 }}>
-            <div>
-              <p style={{ fontWeight:600, fontSize:14, color:C.text, margin:"0 0 2px" }}>Pickup</p>
-              <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>Customers collect from your home</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+          {/* Pickup */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:pickup.enabled?"1rem":0 }}>
+              <div>
+                <p style={{ fontWeight:600, fontSize:14, color:C.text, margin:"0 0 2px" }}>🏠 Pickup</p>
+                <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>Customers collect from your home</p>
+              </div>
+              <Toggle val={pickup.enabled} onChange={()=>setPickup(p=>({...p,enabled:!p.enabled}))}/>
             </div>
-            <Toggle val={pickup.enabled} onChange={()=>setPickup(p=>({...p,enabled:!p.enabled}))}/>
+            {pickup.enabled && <>
+              <Inp label="Pickup Address" value={pickup.address} onChange={v=>setPickup(p=>({...p,address:v}))} ph="Your address"/>
+              <div>
+                <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Special Instructions</label>
+                <textarea value={pickup.instructions} onChange={e=>setPickup(p=>({...p,instructions:e.target.value}))} rows={3}
+                  style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box" }}/>
+              </div>
+            </>}
           </div>
-          {pickup.enabled && <>
-            <Inp label="Pickup Address" value={pickup.address} onChange={v=>setPickup(p=>({...p,address:v}))} ph="Your address"/>
-            <div>
-              <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Instructions</label>
-              <textarea value={pickup.instructions} onChange={e=>setPickup(p=>({...p,instructions:e.target.value}))} rows={2}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box" }}/>
+          {/* Home Delivery */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:del.enabled?"1rem":0 }}>
+              <div>
+                <p style={{ fontWeight:600, fontSize:14, color:C.text, margin:"0 0 2px" }}>🚗 Home Delivery</p>
+                <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>You deliver to customers</p>
+              </div>
+              <Toggle val={del.enabled} onChange={()=>setDel(p=>({...p,enabled:!p.enabled}))}/>
             </div>
-          </>}
-        </div>
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:12 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:del.enabled?"1rem":0 }}>
-            <div>
-              <p style={{ fontWeight:600, fontSize:14, color:C.text, margin:"0 0 2px" }}>Home Delivery</p>
-              <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>You deliver to customers</p>
-            </div>
-            <Toggle val={del.enabled} onChange={()=>setDel(p=>({...p,enabled:!p.enabled}))}/>
+            {del.enabled && <>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:8 }}>
+                <Inp label="Fee ($)"     value={del.fee}      onChange={v=>setDel(p=>({...p,fee:v}))}      ph="5.00"/>
+                <Inp label="Min ($)"     value={del.minOrder} onChange={v=>setDel(p=>({...p,minOrder:v}))} ph="20.00"/>
+                <Inp label="Radius (km)" value={del.radius}   onChange={v=>setDel(p=>({...p,radius:v}))}   ph="10"/>
+              </div>
+            </>}
           </div>
-          {del.enabled && (
-            <div style={{ display:"flex", gap:10 }}>
-              <Inp label="Fee ($)"     value={del.fee}      onChange={v=>setDel(p=>({...p,fee:v}))}      ph="5.00"/>
-              <Inp label="Min ($)"     value={del.minOrder} onChange={v=>setDel(p=>({...p,minOrder:v}))} ph="20.00"/>
-              <Inp label="Radius (km)" value={del.radius}   onChange={v=>setDel(p=>({...p,radius:v}))}   ph="10"/>
-            </div>
-          )}
         </div>
+        {/* Schedule — full width */}
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:"1.5rem" }}>
-          <p style={{ fontWeight:600, fontSize:13, color:C.text, margin:"0 0 1rem" }}>Schedule</p>
-          <div style={{ display:"flex", gap:7, marginBottom:"1rem" }}>
+          <p style={{ fontWeight:600, fontSize:13, color:C.text, margin:"0 0 1rem" }}>📅 Schedule</p>
+          <div style={{ display:"flex", gap:8, marginBottom:"1.25rem" }}>
             {DAY_LABELS.map(([key,label])=>(
-              <button key={key} onClick={()=>setDays(p=>({...p,[key]:!p[key]}))} style={{ width:40, height:36, borderRadius:4, border:`1px solid ${days[key]?C.accent:C.border}`, background:days[key]?C.accentBg:"transparent", color:days[key]?C.accent:C.textMuted, fontSize:11, fontWeight:600, cursor:"pointer" }}>{label}</button>
+              <button key={key} onClick={()=>setDays(p=>({...p,[key]:!p[key]}))} style={{ flex:1, height:42, borderRadius:6, border:`1px solid ${days[key]?C.accent:C.border}`, background:days[key]?C.accentBg:"transparent", color:days[key]?C.accent:C.textMuted, fontSize:12, fontWeight:600, cursor:"pointer" }}>{label}</button>
             ))}
           </div>
-          <div style={{ display:"flex", gap:10 }}>
-            <Inp label="Cutoff Time" value={del.cutoff} onChange={v=>setDel(p=>({...p,cutoff:v}))} ph="17:00"/>
-            <div style={{ flex:1, marginBottom:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <Inp label="Order Cutoff Time" value={del.cutoff} onChange={v=>setDel(p=>({...p,cutoff:v}))} ph="17:00"/>
+            <div style={{ marginBottom:12 }}>
               <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Lead Time</label>
               <select value={del.lead} onChange={e=>setDel(p=>({...p,lead:e.target.value}))}
                 style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none" }}>
-                <option value="0">Same day</option><option value="1">1 day</option><option value="2">2 days</option>
+                <option value="0">Same day</option><option value="1">1 day notice</option><option value="2">2 days notice</option>
               </select>
             </div>
           </div>
         </div>
-        <button onClick={save} style={{ background:saved?"rgba(34,197,94,0.15)":C.accent, color:saved?C.success:"#000", border:`1px solid ${saved?C.success:"transparent"}`, borderRadius:5, padding:"11px 24px", fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.2s" }}>
+        <button onClick={save} style={{ background:saved?C.success:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"12px 28px", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s" }}>
           {saved?"✓ Settings Saved":"Save Settings"}
         </button>
       </div>
