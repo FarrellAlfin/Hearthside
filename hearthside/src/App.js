@@ -84,6 +84,7 @@ const CHARITIES = [
   { id:4, name:"The Stop Community Food", emoji:"🌱", desc:"Community food programs in Davenport.", hood:"Davenport" },
 ];
 const HOODS = ["All","Leslieville","Kensington","Chinatown","Little Portugal","Brampton","Roncesvalles"];
+// eslint-disable-next-line no-unused-vars
 const CHAT_INIT = [
   { id:1, seller:"Maria's Home Bakery",  hood:"Leslieville",  emoji:"🍞", time:"8:02am",  msg:"Fresh sourdough just out of the oven! 8 loaves available today 🔥 Order by noon for afternoon pickup." },
   { id:2, seller:"The Dumpling Den",     hood:"Chinatown",    emoji:"🥟", time:"8:45am",  msg:"Making an extra batch of pork dumplings today — 5 orders left at the special price of $12/dozen." },
@@ -1089,7 +1090,8 @@ function SellerApp({ user, onSignOut }) {
     const [imagePreview, setImagePreview] = useState(null);
     const [uploading,    setUploading]    = useState(false);
     const [saving,       setSaving]       = useState(false);
-
+    
+// eslint-disable-next-line no-unused-vars
     const openEdit = (p) => { setEditProduct(p); setEditForm({ name:p.name, price:String(p.price||""), emoji:p.emoji||"🍞", desc:p.desc||"", stock:String(p.stock||"10") }); };
 
     const saveEdit = async () => {
