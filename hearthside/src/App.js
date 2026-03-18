@@ -1764,7 +1764,9 @@ function SellerApp({ user, onSignOut }) {
     const [newCat,    setNewCat]    = useState("ingredients");
     const [newLabel,  setNewLabel]  = useState("");
     const [newAmt,    setNewAmt]    = useState("");
-    const [showStmt,  setShowStmt]  = useState(false);
+    const [showStmt,        setShowStmt]        = useState(false);
+    const [selectedStmtMonth, setSelectedStmtMonth] = useState("");
+    const [editingStmt,       setEditingStmt]       = useState(null);
 
     const saveMonthToHistory = async () => {
       if (!finRevenue && finCosts.length===0) return;
@@ -1810,8 +1812,13 @@ function SellerApp({ user, onSignOut }) {
 
     const startNewMonth = () => {
       saveMonthToHistory();
-      const now2 = new Date();
-      const next = `${MONTHS[now2.getMonth()]} ${now2.getFullYear()}`;
+      // Advance to the next calendar month from the CURRENT tracking month
+      const parts = finMonth.split(" ");
+      const curMonthIdx = MONTHS.indexOf(parts[0]);
+      const curYear = parseInt(parts[1])||new Date().getFullYear();
+      const nextMonthIdx = (curMonthIdx + 1) % 12;
+      const nextYear = curMonthIdx === 11 ? curYear + 1 : curYear;
+      const next = `${MONTHS[nextMonthIdx]} ${nextYear}`;
       setFinMonth(next);
       setFinRevenue("");
       if (revenueInputRef.current) revenueInputRef.current.value = "";
@@ -1872,43 +1879,145 @@ function SellerApp({ user, onSignOut }) {
 
         {/* Monthly Statements Panel */}
         {showStmt && (
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:"1.25rem" }}>
-            <p style={{ fontWeight:600, fontSize:13, color:C.text, margin:"0 0 12px" }}>Monthly Statements</p>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.5rem", marginBottom:"1.25rem" }}>
+            <p style={{ fontWeight:700, fontSize:14, color:C.text, margin:"0 0 14px", letterSpacing:"-0.01em" }}>Monthly Statements</p>
+
             {finHistory.length===0 ? (
-              <p style={{ fontSize:13, color:C.textMuted, margin:0 }}>No saved months yet. Click "New Month" to save the current month and start a new one.</p>
+              <p style={{ fontSize:13, color:C.textMuted, margin:0 }}>No saved months yet. Click "+ New Month" to save the current month and start a fresh one.</p>
             ) : (
-              <div style={{ overflowX:"auto" }}>
-                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-                  <thead>
-                    <tr style={{ borderBottom:`1px solid ${C.border}` }}>
-                      {["Month","Revenue","Costs","Profit","Margin",""].map(h=>(
-                        <th key={h} style={{ textAlign:"left", padding:"8px 12px", color:C.textMuted, fontWeight:600, fontSize:10, textTransform:"uppercase", letterSpacing:"0.07em" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...finHistory].reverse().map((m,i)=>{
-                      const mCosts = m.costs.reduce((s,c)=>s+c.amount,0);
-                      const mProfit = m.revenue - mCosts;
-                      const mMargin = m.revenue>0?((mProfit/m.revenue)*100).toFixed(1):"—";
-                      return (
-                        <tr key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                          <td style={{ padding:"9px 12px", color:C.text, fontWeight:600 }}>{m.month}</td>
-                          <td style={{ padding:"9px 12px", color:C.success, fontWeight:600 }}>${m.revenue.toFixed(2)}</td>
-                          <td style={{ padding:"9px 12px", color:C.warning }}>${mCosts.toFixed(2)}</td>
-                          <td style={{ padding:"9px 12px", color:mProfit>=0?C.success:C.danger, fontWeight:700 }}>${mProfit.toFixed(2)}</td>
-                          <td style={{ padding:"9px 12px" }}>
-                            <span style={{ background:parseFloat(mMargin)>=62?C.successBg:C.warningBg, color:parseFloat(mMargin)>=62?C.success:C.warning, padding:"2px 8px", borderRadius:4, fontSize:11, fontWeight:600 }}>{mMargin}{mMargin!=="—"?"%":""}</span>
-                          </td>
-                          <td style={{ padding:"9px 12px" }}>
-                            <button onClick={()=>loadMonth(m)} style={{ background:C.accentBg, border:`1px solid ${C.accentBorder}`, color:C.accent, borderRadius:4, padding:"3px 10px", fontSize:11, fontWeight:600, cursor:"pointer" }}>Load</button>
-                          </td>
-                        </tr>
-                      );
+              <>
+                {/* Dropdown to select a month */}
+                <div style={{ marginBottom:16 }}>
+                  <label style={{ fontSize:10, fontWeight:700, color:C.textMuted, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Select a month to view or edit</label>
+                  <select
+                    value={selectedStmtMonth||""}
+                    onChange={e=>{
+                      const m = finHistory.find(h=>h.month===e.target.value)||null;
+                      setSelectedStmtMonth(e.target.value);
+                      setEditingStmt(m ? { ...m, costs:[...m.costs.map(c=>({...c}))] } : null);
+                    }}
+                    style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:6, fontSize:14, fontWeight:600, color:C.text, background:C.surfaceHigh, outline:"none" }}>
+                    <option value="">— Choose a month —</option>
+                    {[...finHistory].reverse().map(m=>{
+                      const mC = m.costs.reduce((s,c)=>s+c.amount,0);
+                      const mP = m.revenue - mC;
+                      return <option key={m.month} value={m.month}>{m.month} · Revenue ${m.revenue.toFixed(2)} · Profit ${mP.toFixed(2)}</option>;
                     })}
-                  </tbody>
-                </table>
-              </div>
+                  </select>
+                </div>
+
+                {/* Editable statement detail */}
+                {editingStmt && (
+                  <div style={{ background:C.surfaceHigh, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                      <p style={{ fontWeight:700, fontSize:15, color:C.accent, margin:0 }}>{editingStmt.month}</p>
+                      <div style={{ display:"flex", gap:8 }}>
+                        <button onClick={async ()=>{
+                          // Save changes to this historical month
+                          const updated = { month:editingStmt.month, revenue:parseFloat(editingStmt.revenueEdit||editingStmt.revenue)||0, costs:editingStmt.costs };
+                          setFinHistory(h=>h.map(m=>m.month===updated.month?updated:m));
+                          if (user?.id) {
+                            await supabase.from("finances").upsert({
+                              seller_id: user.id, month: updated.month,
+                              revenue: updated.revenue, costs: updated.costs
+                            }, { onConflict:"seller_id,month" });
+                          }
+                          setEditingStmt(null); setSelectedStmtMonth("");
+                        }} style={{ background:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"7px 14px", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+                          Save Changes
+                        </button>
+                        <button onClick={()=>loadMonth(editingStmt)} style={{ background:C.accentBg, border:`1px solid ${C.accentBorder}`, color:C.accent, borderRadius:5, padding:"7px 14px", fontSize:12, fontWeight:600, cursor:"pointer" }}>
+                          Load as Current
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Edit revenue for this month */}
+                    <div style={{ marginBottom:14 }}>
+                      <label style={{ fontSize:10, fontWeight:700, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Revenue</label>
+                      <div style={{ position:"relative", maxWidth:240 }}>
+                        <span style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", fontSize:13, color:C.textMuted, fontWeight:600 }}>$</span>
+                        <input
+                          defaultValue={editingStmt.revenue}
+                          onBlur={e=>setEditingStmt(s=>({...s, revenueEdit:e.target.value}))}
+                          type="text" inputMode="decimal"
+                          style={{ width:"100%", padding:"9px 9px 9px 22px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:14, fontWeight:700, color:C.text, background:C.surface, outline:"none", boxSizing:"border-box" }}/>
+                      </div>
+                    </div>
+
+                    {/* Edit cost entries */}
+                    <div style={{ marginBottom:12 }}>
+                      <label style={{ fontSize:10, fontWeight:700, color:C.textMuted, display:"block", marginBottom:8, textTransform:"uppercase", letterSpacing:"0.08em" }}>Cost Entries</label>
+                      {editingStmt.costs.length===0 ? (
+                        <p style={{ fontSize:12, color:C.textMuted }}>No costs for this month.</p>
+                      ) : editingStmt.costs.map((c,i)=>(
+                        <div key={c.id||i} style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 0", borderBottom:`1px solid ${C.border}` }}>
+                          <div style={{ width:8, height:8, borderRadius:"50%", background:c.color||C.accent, flexShrink:0 }}/>
+                          <span style={{ fontSize:12, color:C.text, fontWeight:500, flex:1 }}>{c.label}</span>
+                          <span style={{ fontSize:11, color:C.textMuted, textTransform:"capitalize", width:80 }}>{c.cat}</span>
+                          <input
+                            defaultValue={c.amount}
+                            onBlur={e=>{
+                              const v = parseFloat(e.target.value)||0;
+                              setEditingStmt(s=>({ ...s, costs:s.costs.map((cc,ii)=>ii===i?{...cc,amount:v}:cc) }));
+                            }}
+                            type="text" inputMode="decimal"
+                            style={{ width:80, padding:"4px 8px", border:`1px solid ${C.border}`, borderRadius:4, fontSize:13, fontWeight:600, color:C.text, background:C.surface, outline:"none", textAlign:"right" }}/>
+                          <button onClick={()=>setEditingStmt(s=>({...s,costs:s.costs.filter((_,ii)=>ii!==i)}))}
+                            style={{ background:C.dangerBg, border:`1px solid ${C.danger}`, borderRadius:4, padding:"2px 7px", fontSize:11, color:C.danger, cursor:"pointer" }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add a cost to this historical month */}
+                    <div style={{ display:"flex", gap:8, alignItems:"flex-end" }}>
+                      <div style={{ flex:1 }}>
+                        <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.07em" }}>Category</label>
+                        <select value={newCat} onChange={e=>setNewCat(e.target.value)}
+                          style={{ width:"100%", padding:"8px 9px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:12, color:C.text, background:C.surface, outline:"none" }}>
+                          {COST_CATS.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.07em" }}>Description</label>
+                        <input value={newLabel} onChange={e=>setNewLabel(e.target.value)} placeholder="optional"
+                          style={{ width:"100%", padding:"8px 9px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:12, color:C.text, background:C.surface, outline:"none", boxSizing:"border-box" }}/>
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.07em" }}>Amount ($)</label>
+                        <input value={newAmt} onChange={e=>setNewAmt(e.target.value)} placeholder="0.00"
+                          style={{ width:"100%", padding:"8px 9px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:12, color:C.text, background:C.surface, outline:"none", boxSizing:"border-box" }}/>
+                      </div>
+                      <button onClick={()=>{
+                        if (!newAmt||parseFloat(newAmt)<=0) return;
+                        const cat = COST_CATS.find(c=>c.value===newCat);
+                        setEditingStmt(s=>({ ...s, costs:[...s.costs,{ id:Date.now(), cat:newCat, label:newLabel||cat.label, amount:parseFloat(newAmt), color:cat.color }] }));
+                        setNewLabel(""); setNewAmt("");
+                      }} style={{ background:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+                        + Add
+                      </button>
+                    </div>
+
+                    {/* Summary */}
+                    {(() => {
+                      const mC = editingStmt.costs.reduce((s,c)=>s+c.amount,0);
+                      const mR = parseFloat(editingStmt.revenueEdit||editingStmt.revenue)||0;
+                      const mP = mR - mC;
+                      const mM = mR>0?((mP/mR)*100).toFixed(1):"—";
+                      return (
+                        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginTop:14, paddingTop:14, borderTop:`1px solid ${C.border}` }}>
+                          {[["Revenue",`$${mR.toFixed(2)}`,C.accent],["Costs",`$${mC.toFixed(2)}`,C.warning],["Profit",`$${mP.toFixed(2)}`,mP>=0?C.success:C.danger],["Margin",mM!=="—"?`${mM}%`:"—",parseFloat(mM)>=62?C.success:C.warning]].map(([k,v,col])=>(
+                            <div key={k} style={{ textAlign:"center", background:C.surface, borderRadius:6, padding:"8px" }}>
+                              <p style={{ fontSize:10, color:C.textMuted, margin:"0 0 3px", textTransform:"uppercase", letterSpacing:"0.07em" }}>{k}</p>
+                              <p style={{ fontSize:16, fontWeight:700, color:col, margin:0 }}>{v}</p>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
