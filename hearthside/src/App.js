@@ -1329,6 +1329,11 @@ function SellerApp({ user, onSignOut }) {
     const [saving,       setSaving]       = useState(false);
     const [editImages,   setEditImages]   = useState([]);
     const [editSlide,    setEditSlide]    = useState(0);
+    // Uncontrolled refs for edit form text fields
+    const editNameRef  = useRef(null);
+    const editPriceRef = useRef(null);
+    const editStockRef = useRef(null);
+    const editDescRef  = useRef(null);
 
     const saveEdit = async () => {
       if (!editForm.name||!editForm.price||!editProduct) return;
@@ -1349,12 +1354,12 @@ function SellerApp({ user, onSignOut }) {
         }
       }
       const updates = {
-        name: editForm.name,
-        price: parseFloat(editForm.price)||0,
+        name: editNameRef.current?.value?.trim() || editForm.name,
+        price: parseFloat(editPriceRef.current?.value || editForm.price)||0,
         category: editForm.category||"Other",
         emoji: editForm.category||"Other",
-        desc: editForm.desc,
-        stock: editForm.stock ? (parseInt(editForm.stock)||0) : (editProduct.stock||0),
+        desc: editDescRef.current?.value?.trim() ?? editForm.desc,
+        stock: parseInt(editStockRef.current?.value || editForm.stock)||0,
         availability: editForm.availability||"available",
         image_url: uploadedUrls[0]||editProduct.image_url||null,
         images: uploadedUrls.length>0 ? JSON.stringify(uploadedUrls) : editProduct.images||null,
@@ -1479,52 +1484,34 @@ function SellerApp({ user, onSignOut }) {
         {/* ── PRODUCT PREVIEW + EDIT MODAL ── */}
         {editProduct && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:16, width:860, maxWidth:"96vw", maxHeight:"92vh", display:"flex", overflow:"hidden", boxShadow:"0 24px 60px rgba(0,0,0,0.4)" }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:16, width:560, maxWidth:"96vw", maxHeight:"94vh", overflowY:"auto", boxShadow:"0 24px 60px rgba(0,0,0,0.4)" }}>
 
-              {/* ── SHARED IMAGE PANEL (left side) ── */}
-              {(() => {
-                const storedImgs = (() => { try { const p=JSON.parse(editProduct.images||"[]"); return p.length>0?p:(editProduct.image_url?[editProduct.image_url]:[]); } catch(e) { return editProduct.image_url?[editProduct.image_url]:[]; } })();
-                const showImgs = editForm ? (editImages.length>0 ? editImages.map(i=>i.url) : storedImgs) : storedImgs;
-                const slide = editSlide < showImgs.length ? editSlide : 0;
-                return (
-                  <div style={{ width:340, flexShrink:0, background:C.surfaceHigh, position:"relative", display:"flex", flexDirection:"column" }}>
-                    {showImgs.length>0 ? (
-                      <>
-                        <img src={showImgs[slide]} alt={editProduct.name} style={{ width:"100%", flex:1, objectFit:"cover", minHeight:0, display:"block" }}/>
-                        {showImgs.length>1 && (
+              {/* ── PREVIEW MODE ── */}
+              {!editForm && (
+                <div>
+                  {/* Image slideshow */}
+                  {(() => {
+                    const imgs = (() => { try { const p=JSON.parse(editProduct.images||"[]"); return p.length>0?p:(editProduct.image_url?[editProduct.image_url]:[]); } catch(e) { return editProduct.image_url?[editProduct.image_url]:[]; } })();
+                    if (imgs.length===0) return <div style={{ width:"100%", height:240, background:C.surfaceHigh, borderRadius:"16px 16px 0 0", display:"flex", alignItems:"center", justifyContent:"center", fontSize:64 }}>{editProduct.category||"🍞"}</div>;
+                    return (
+                      <div style={{ position:"relative" }}>
+                        <img src={imgs[editSlide]||imgs[0]} alt={editProduct.name} style={{ width:"100%", height:280, objectFit:"cover", borderRadius:"16px 16px 0 0", display:"block" }}/>
+                        {imgs.length>1 && (
                           <>
-                            <button onClick={e=>{ e.stopPropagation(); setEditSlide(s=>Math.max(0,s-1)); }} disabled={slide===0}
-                              style={{ position:"absolute", left:8, top:"50%", transform:"translateY(-50%)", background:"rgba(0,0,0,0.5)", color:"#FFF", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:16 }}>‹</button>
-                            <button onClick={e=>{ e.stopPropagation(); setEditSlide(s=>Math.min(showImgs.length-1,s+1)); }} disabled={slide===showImgs.length-1}
-                              style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"rgba(0,0,0,0.5)", color:"#FFF", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:16 }}>›</button>
-                            <span style={{ position:"absolute", top:10, right:10, background:"rgba(0,0,0,0.6)", color:"#FFF", fontSize:11, fontWeight:600, padding:"2px 9px", borderRadius:10 }}>{slide+1}/{showImgs.length}</span>
+                            <button onClick={e=>{e.stopPropagation();setEditSlide(s=>Math.max(0,s-1));}} disabled={editSlide===0}
+                              style={{ position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.5)",color:"#FFF",border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:16 }}>‹</button>
+                            <button onClick={e=>{e.stopPropagation();setEditSlide(s=>Math.min(imgs.length-1,s+1));}} disabled={editSlide===imgs.length-1}
+                              style={{ position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.5)",color:"#FFF",border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:16 }}>›</button>
+                            <span style={{ position:"absolute",top:10,right:10,background:"rgba(0,0,0,0.6)",color:"#FFF",fontSize:11,fontWeight:600,padding:"2px 9px",borderRadius:10 }}>{editSlide+1}/{imgs.length}</span>
+                            <div style={{ position:"absolute",bottom:8,left:"50%",transform:"translateX(-50%)",display:"flex",gap:5 }}>
+                              {imgs.map((_,i)=><div key={i} onClick={()=>setEditSlide(i)} style={{ width:7,height:7,borderRadius:"50%",background:i===editSlide?"#FFF":"rgba(255,255,255,0.5)",cursor:"pointer" }}/>)}
+                            </div>
                           </>
                         )}
-                        {/* Thumbnail strip */}
-                        {showImgs.length>1 && (
-                          <div style={{ display:"flex", gap:5, padding:"8px", background:"rgba(0,0,0,0.4)", overflowX:"auto" }}>
-                            {showImgs.map((url,i)=>(
-                              <div key={i} onClick={()=>setEditSlide(i)} style={{ width:44, height:44, borderRadius:4, overflow:"hidden", flexShrink:0, cursor:"pointer", border:`2px solid ${i===slide?"#FFF":"transparent"}`, opacity:i===slide?1:0.65 }}>
-                                <img src={url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:10 }}>
-                        <span style={{ fontSize:56 }}>{editProduct.category||"🍞"}</span>
-                        <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>No photos yet</p>
                       </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* ── PREVIEW MODE (right side) ── */}
-              {!editForm && (
-                <div style={{ flex:1, overflowY:"auto", display:"flex", flexDirection:"column" }}>
-                  <div style={{ padding:"1.5rem 1.75rem", flex:1 }}>
+                    );
+                  })()}
+                  <div style={{ padding:"1.5rem 1.75rem" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                       <div>
                         <p style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 5px", letterSpacing:"-0.02em" }}>{editProduct.name}</p>
@@ -1548,10 +1535,17 @@ function SellerApp({ user, onSignOut }) {
                       ))}
                     </div>
                   </div>
-                  <div style={{ padding:"1rem 1.75rem", borderTop:`1px solid ${C.border}`, display:"flex", gap:8 }}>
-                    <button onClick={()=>{ setEditProduct(null); }} style={{ flex:1, padding:"11px", border:`1px solid ${C.border}`, borderRadius:6, background:"transparent", color:C.textMuted, cursor:"pointer", fontSize:13 }}>Close</button>
+                  <div style={{ padding:"1rem 1.5rem", borderTop:`1px solid ${C.border}`, display:"flex", gap:8 }}>
+                    <button onClick={()=>{ setEditProduct(null); setEditSlide(0); }} style={{ flex:1, padding:"11px", border:`1px solid ${C.border}`, borderRadius:6, background:"transparent", color:C.textMuted, cursor:"pointer", fontSize:13 }}>Close</button>
                     <button onClick={()=>{
-                        setEditForm({ name:editProduct.name, price:String(editProduct.price||""), category:editProduct.category||editProduct.emoji||"Bread", emoji:editProduct.category||editProduct.emoji||"Bread", desc:editProduct.desc||"", stock:String(editProduct.stock||"10"), availability:editProduct.availability||"available" });
+                        setEditForm({ name:editProduct.name, price:String(editProduct.price||""), category:editProduct.category||editProduct.emoji||"Bread", emoji:editProduct.category||editProduct.emoji||"Bread", desc:editProduct.desc||"", stock:String(editProduct.stock||""), availability:editProduct.availability||"available" });
+                        // Sync uncontrolled ref values
+                        setTimeout(()=>{
+                          if(editNameRef.current)  editNameRef.current.value  = editProduct.name||"";
+                          if(editPriceRef.current) editPriceRef.current.value = String(editProduct.price||"");
+                          if(editStockRef.current) editStockRef.current.value = String(editProduct.stock||"");
+                          if(editDescRef.current)  editDescRef.current.value  = editProduct.desc||"";
+                        },0);
                         // Initialize editImages from existing product images
                         const existingUrls = (() => {
                           try { return JSON.parse(editProduct.images||"[]"); } catch(e) { return editProduct.image_url?[editProduct.image_url]:[]; }
@@ -1563,11 +1557,12 @@ function SellerApp({ user, onSignOut }) {
                       </button>
                   </div>
                 </div>
+              </div>
               )}
 
-              {/* ── EDIT MODE (right side) ── */}
+              {/* ── EDIT MODE ── */}
               {editForm && (
-                <div style={{ flex:1, overflowY:"auto", padding:"1.5rem", display:"flex", flexDirection:"column" }}>
+                <div style={{ padding:"1.5rem" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1.25rem" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       <button onClick={()=>setEditForm(null)} style={{ background:"transparent", border:"none", fontSize:16, cursor:"pointer", color:C.textMuted, padding:0 }}>←</button>
@@ -1577,9 +1572,22 @@ function SellerApp({ user, onSignOut }) {
                   </div>
 
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-                    <Inp label="Product Name" value={editForm.name}  onChange={v=>setEditForm({...editForm,name:v})}  ph="e.g. Blueberry Scones"/>
-                    <Inp label="Price ($)"    value={editForm.price} onChange={v=>setEditForm({...editForm,price:v})} ph="16.00"/>
-                    <Inp label="Stock"        value={editForm.stock} onChange={v=>setEditForm({...editForm,stock:v})} ph="10"/>
+                    {/* Uncontrolled inputs — prevent focus loss from parent re-renders */}
+                    <div style={{ marginBottom:12, flex:1 }}>
+                      <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Product Name</label>
+                      <input ref={editNameRef} defaultValue={editForm.name} placeholder="e.g. Blueberry Scones"
+                        style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:6, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", boxSizing:"border-box" }}/>
+                    </div>
+                    <div style={{ marginBottom:12, flex:1 }}>
+                      <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Price ($)</label>
+                      <input ref={editPriceRef} defaultValue={editForm.price} placeholder="16.00" inputMode="decimal"
+                        style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:6, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", boxSizing:"border-box" }}/>
+                    </div>
+                    <div style={{ marginBottom:12, flex:1 }}>
+                      <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Stock</label>
+                      <input ref={editStockRef} defaultValue={editForm.stock} placeholder="10" inputMode="numeric"
+                        style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:6, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", boxSizing:"border-box" }}/>
+                    </div>
                   </div>
                   <div style={{ marginBottom:10 }}>
                     <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Category</label>
@@ -1614,13 +1622,13 @@ function SellerApp({ user, onSignOut }) {
                     </div>
                   </div>
 
-                  {/* Upload more photos */}
-                  <div style={{ marginBottom:12 }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                  {/* Photos — show existing + add new */}
+                  <div style={{ marginBottom:14 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.08em" }}>Photos ({editImages.length}/5)</label>
                       {editImages.length<5 && (
-                        <label style={{ background:C.accentBg, border:`1px solid ${C.accentBorder}`, color:C.accent, borderRadius:4, padding:"4px 10px", fontSize:11, fontWeight:600, cursor:"pointer" }}>
-                          <input type="file" accept="image/*" multiple onChange={async e=>{
+                        <label style={{ background:C.accentBg, border:`1px solid ${C.accentBorder}`, color:C.accent, borderRadius:4, padding:"5px 12px", fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                          <input type="file" accept="image/*" multiple onChange={e=>{
                             const files = Array.from(e.target.files||[]).slice(0,5-editImages.length);
                             setEditImages(imgs=>[...imgs,...files.map(f=>({ file:f, url:URL.createObjectURL(f) }))]);
                             e.target.value="";
@@ -1629,22 +1637,42 @@ function SellerApp({ user, onSignOut }) {
                         </label>
                       )}
                     </div>
-                    {editImages.length>0 && (
-                      <div style={{ display:"flex", gap:5, overflowX:"auto" }}>
-                        {editImages.map((img,i)=>(
-                          <div key={i} style={{ position:"relative", width:52, height:52, borderRadius:5, overflow:"hidden", flexShrink:0, border:`2px solid ${i===editSlide?C.accent:C.border}`, cursor:"pointer" }} onClick={()=>setEditSlide(i)}>
-                            <img src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                            <button onClick={e=>{ e.stopPropagation(); setEditImages(imgs=>imgs.filter((_,ii)=>ii!==i)); setEditSlide(s=>Math.max(0,s-1)); }}
-                              style={{ position:"absolute", top:1, right:1, background:"rgba(181,32,32,0.85)", color:"#FFF", border:"none", borderRadius:2, padding:"0 3px", fontSize:10, cursor:"pointer", lineHeight:"14px" }}>✕</button>
-                          </div>
-                        ))}
+                    {editImages.length>0 ? (
+                      <>
+                        {/* Main image preview */}
+                        <div style={{ position:"relative", marginBottom:8, borderRadius:8, overflow:"hidden" }}>
+                          <img src={editImages[Math.min(editSlide,editImages.length-1)]?.url} alt="product" style={{ width:"100%", height:180, objectFit:"cover", display:"block" }}/>
+                          {editImages.length>1 && (
+                            <>
+                              <button onClick={()=>setEditSlide(s=>Math.max(0,s-1))} disabled={editSlide===0}
+                                style={{ position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.5)",color:"#FFF",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14 }}>‹</button>
+                              <button onClick={()=>setEditSlide(s=>Math.min(editImages.length-1,s+1))} disabled={editSlide===editImages.length-1}
+                                style={{ position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.5)",color:"#FFF",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14 }}>›</button>
+                              <span style={{ position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.6)",color:"#FFF",fontSize:10,fontWeight:600,padding:"2px 7px",borderRadius:8 }}>{Math.min(editSlide,editImages.length-1)+1}/{editImages.length}</span>
+                            </>
+                          )}
+                        </div>
+                        {/* Thumbnail strip */}
+                        <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
+                          {editImages.map((img,i)=>(
+                            <div key={i} style={{ position:"relative", width:52, height:52, borderRadius:5, overflow:"hidden", flexShrink:0, border:`2px solid ${i===editSlide?C.accent:C.border}`, cursor:"pointer" }} onClick={()=>setEditSlide(i)}>
+                              <img src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                              <button onClick={e=>{ e.stopPropagation(); setEditImages(imgs=>imgs.filter((_,ii)=>ii!==i)); setEditSlide(s=>Math.max(0,Math.min(s,editImages.length-2))); }}
+                                style={{ position:"absolute",top:1,right:1,background:"rgba(181,32,32,0.85)",color:"#FFF",border:"none",borderRadius:2,padding:"0 3px",fontSize:9,cursor:"pointer",lineHeight:"14px" }}>✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ border:`2px dashed ${C.border}`, borderRadius:6, padding:"1.25rem", textAlign:"center", color:C.textMuted, fontSize:12 }}>
+                        No photos yet — click "+ Add Photos" above
                       </div>
                     )}
                   </div>
 
                   <div style={{ marginBottom:16 }}>
                     <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Description</label>
-                    <textarea value={editForm.desc} onChange={e=>setEditForm({...editForm,desc:e.target.value})} rows={3}
+                    <textarea ref={editDescRef} defaultValue={editForm.desc} rows={3} placeholder="Brief description..."
                       style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box" }}/>
                   </div>
                   <div style={{ display:"flex", gap:8 }}>
