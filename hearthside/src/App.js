@@ -1719,7 +1719,6 @@ function SellerApp({ user, onSignOut }) {
     // when the component is defined inside a parent that re-renders.
     // We commit the value to finRevenue on blur only.
     const revenue = finRevenue;
-    const setRevenue = setFinRevenue;
     const [newCat,    setNewCat]    = useState("ingredients");
     const [newLabel,  setNewLabel]  = useState("");
     const [newAmt,    setNewAmt]    = useState("");
