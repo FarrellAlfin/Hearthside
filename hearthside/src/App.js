@@ -1485,6 +1485,7 @@ function SellerApp({ user, onSignOut }) {
         {editProduct && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:16, width:560, maxWidth:"96vw", maxHeight:"94vh", overflowY:"auto", boxShadow:"0 24px 60px rgba(0,0,0,0.4)" }}>
+              <>
 
               {/* ── PREVIEW MODE ── */}
               {!editForm && (
@@ -1684,6 +1685,7 @@ function SellerApp({ user, onSignOut }) {
                   </div>
                 </div>
               )}
+              </>
             </div>
           </div>
         )}
