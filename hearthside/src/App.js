@@ -1156,6 +1156,7 @@ function SellerApp({ user, onSignOut }) {
 
   // ── SELLER DASHBOARD ──
   const Dashboard = () => {
+  // eslint-disable-next-line no-unused-vars
     const top         = [...products].sort((a,b)=>(b.sold||0)-(a.sold||0))[0]||products[0];
     const rev         = parseFloat(finRevenue)||0;
     const totalCosts  = finCosts.reduce((s,c)=>s+c.amount,0);
