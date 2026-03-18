@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  'https://kxajjlrjgrabtmyksqrq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4YWpqbHJqZ3JhYnRteWtzcXJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NjIyMzMsImV4cCI6MjA4OTMzODIzM30.UCUOnwpyP4oBJyHhaCEM4kym_UlDY32a2SWP3x8atQU'
+);
+
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const C = {
   primary:"#C4622D", primaryDark:"#A05025", primaryBg:"#FBEEE6",
