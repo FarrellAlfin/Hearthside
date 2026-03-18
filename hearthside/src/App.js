@@ -140,7 +140,7 @@ function KPI({ label, value, sub, color }) {
   return (
     <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1rem 1.25rem" }}>
       <p style={{ fontSize:10, color:C.textMuted, margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.1em", fontWeight:600 }}>{label}</p>
-      <p style={{ fontSize:28, fontWeight:700, margin:"0 0 4px", color:color||C.text, letterSpacing:"-0.02em", ...ff }}>{value}</p>
+      <p style={{ fontSize:28, fontWeight:700, margin:"0 0 4px", color:color||C.text, letterSpacing:"-0.02em"}}>{value}</p>
       {sub && <p style={{ fontSize:11, color:C.textMuted, margin:0 }}>{sub}</p>}
     </div>
   );
