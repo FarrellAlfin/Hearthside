@@ -48,12 +48,12 @@ const C = {
 
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
 const STORES = [
-  { id:1, name:"Maria's Home Bakery",   owner:"Maria Santos",   hood:"Leslieville",     emoji:"🍞", rating:4.9, reviews:127, badge:"Top Rated",   desc:"Sourdough specialist. Everything baked fresh at 5am.", tags:["Bread","Pastry"],      deliveryFee:5, minOrder:20 },
-  { id:2, name:"Aisha's Sweet Corner",  owner:"Aisha Kamara",   hood:"Kensington",      emoji:"🧁", rating:4.7, reviews:89,  badge:"New",          desc:"Afro-Caribbean fusion cakes and celebration desserts.", tags:["Cake","Dessert"],     deliveryFee:6, minOrder:25 },
-  { id:3, name:"The Dumpling Den",      owner:"Li Wei",         hood:"Chinatown",       emoji:"🥟", rating:4.8, reviews:203, badge:"Community ♥",  desc:"Hand-folded dumplings, scallion pancakes, red bean buns.", tags:["Savoury","Asian"], deliveryFee:4, minOrder:15 },
-  { id:4, name:"Florencia's Empanadas", owner:"Florencia Ruiz", hood:"Little Portugal", emoji:"🫓", rating:4.6, reviews:61,  badge:null,           desc:"Crispy empanadas — beef, chicken, spinach & cheese.", tags:["Savoury","Latin"],    deliveryFee:5, minOrder:18 },
-  { id:5, name:"Biji's Spice Kitchen",  owner:"Biji Patel",     hood:"Brampton",        emoji:"🫙", rating:4.8, reviews:145, badge:"Top Rated",    desc:"Homemade chutneys, pickles, and fresh-baked roti.", tags:["Condiments","Bread"],  deliveryFee:7, minOrder:20 },
-  { id:6, name:"Sunshine Sourdough",    owner:"Tom Richards",   hood:"Roncesvalles",    emoji:"☀️", rating:4.5, reviews:44,  badge:"New",          desc:"Country loaves, focaccia, and seasonal fruit crumbles.", tags:["Bread","Pastry"],  deliveryFee:5, minOrder:20 },
+  { id:1, name:"Maria's Home Bakery",   owner:"Maria Santos",   hood:"Leslieville",     emoji:"🍞", rating:4.9, reviews:127, badge:"Top Rated",   desc:"Sourdough specialist. Everything baked fresh at 5am.", tags:["Bread","Pastry"],      deliveryFee:5, minOrder:20, instagram:"@mariashomebakery", whatsapp:"+14165550101" },
+  { id:2, name:"Aisha's Sweet Corner",  owner:"Aisha Kamara",   hood:"Kensington",      emoji:"🧁", instagram:"@aishassweetcorner", whatsapp:"+14165550102", rating:4.7, reviews:89,  badge:"New",          desc:"Afro-Caribbean fusion cakes and celebration desserts.", tags:["Cake","Dessert"],     deliveryFee:6, minOrder:25 },
+  { id:3, name:"The Dumpling Den",      owner:"Li Wei",         hood:"Chinatown",       emoji:"🥟", instagram:"@thedumplingden",    whatsapp:"+14165550103", rating:4.8, reviews:203, badge:"Community ♥",  desc:"Hand-folded dumplings, scallion pancakes, red bean buns.", tags:["Savoury","Asian"], deliveryFee:4, minOrder:15 },
+  { id:4, name:"Florencia's Empanadas", owner:"Florencia Ruiz", hood:"Little Portugal", emoji:"🫓", instagram:null,                 whatsapp:null, rating:4.6, reviews:61,  badge:null,           desc:"Crispy empanadas — beef, chicken, spinach & cheese.", tags:["Savoury","Latin"],    deliveryFee:5, minOrder:18 },
+  { id:5, name:"Biji's Spice Kitchen",  owner:"Biji Patel",     hood:"Brampton",        emoji:"🫙", instagram:"@bijispicekitchen",  whatsapp:"+14165550105", rating:4.8, reviews:145, badge:"Top Rated",    desc:"Homemade chutneys, pickles, and fresh-baked roti.", tags:["Condiments","Bread"],  deliveryFee:7, minOrder:20 },
+  { id:6, name:"Sunshine Sourdough",    owner:"Tom Richards",   hood:"Roncesvalles",    emoji:"☀️", instagram:"@sunshinesourdough", whatsapp:null, rating:4.5, reviews:44,  badge:"New",          desc:"Country loaves, focaccia, and seasonal fruit crumbles.", tags:["Bread","Pastry"],  deliveryFee:5, minOrder:20 },
 ];
 const STORE_PRODUCTS = {
   1:[ { id:101, name:"Sourdough Loaf",       price:12, emoji:"🍞", desc:"Tangy slow-fermented sourdough with a golden crust.", stock:8  },
@@ -99,12 +99,7 @@ const REV_DATA = [
   { month:"Feb", revenue:1050, expenses:325, profit:725 },
   { month:"Mar", revenue:1380, expenses:415, profit:965 },
 ];
-const ORDERS_DATA = [
-  { id:"#1042", customer:"Sarah M.",  items:"Sourdough x2, Brownies x1",         total:42, status:"delivered", date:"Mar 15" },
-  { id:"#1041", customer:"James P.",  items:"Cinnamon Rolls x1",                 total:22, status:"ready",     date:"Mar 15" },
-  { id:"#1040", customer:"Aisha K.",  items:"Lemon Drizzle x1, Banana Bread x1", total:42, status:"preparing", date:"Mar 14" },
-  { id:"#1039", customer:"Tom R.",    items:"Red Velvet x2, Brownies x1",        total:66, status:"delivered", date:"Mar 14" },
-];
+const ORDERS_DATA = [];
 const STATUS_MAP = {
   delivered:{ bg:"rgba(34,197,94,0.12)",   color:"#22C55E", label:"Delivered"  },
   ready:    { bg:"rgba(59,130,246,0.12)",   color:"#3B82F6", label:"Ready"      },
@@ -119,6 +114,7 @@ const SELLER_NAV = [
   { id:"delivery",   icon:"⌖", label:"Delivery"     },
   { id:"marketing",  icon:"✦", label:"AI Marketing" },
   { id:"community",  icon:"◎", label:"Community"    },
+  { id:"profile",    icon:"⊙", label:"Store Profile" },
 ];
 const TIME_SLOTS = [
   { value:"next-day-am", label:"Tomorrow, 9am–12pm"  },
@@ -140,14 +136,14 @@ function KPI({ label, value, sub, color }) {
   return (
     <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1rem 1.25rem" }}>
       <p style={{ fontSize:10, color:C.textMuted, margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.1em", fontWeight:600 }}>{label}</p>
-      <p style={{ fontSize:28, fontWeight:700, margin:"0 0 4px", color:color||C.text, letterSpacing:"-0.02em"}}>{value}</p>
+      <p style={{ fontSize:28, fontWeight:700, margin:"0 0 4px", color:color||C.text, letterSpacing:"-0.02em" }}>{value}</p>
       {sub && <p style={{ fontSize:11, color:C.textMuted, margin:0 }}>{sub}</p>}
     </div>
   );
 }
 function Toggle({ val, onChange }) {
   return (
-    <div onClick={onChange} style={{ width:44, height:24, borderRadius:12, background:val?C.accent:"rgba(255,255,255,0.1)", cursor:"pointer", position:"relative", flexShrink:0, transition:"background 0.2s" }}>
+    <div onClick={onChange} style={{ width:44, height:24, borderRadius:12, background:val?C.accent:C.surfaceTop, cursor:"pointer", position:"relative", flexShrink:0, transition:"background 0.2s" }}>
       <div style={{ width:18, height:18, borderRadius:"50%", background:val?"#000":"#555", position:"absolute", top:3, left:val?23:3, transition:"left 0.18s" }}/>
     </div>
   );
@@ -400,9 +396,21 @@ function CustomerApp({ user, onSignOut }) {
               <p style={{ fontSize:13, color:C.textSub, margin:0 }}>{store.desc}</p>
             </div>
           </div>
-          <div style={{ display:"flex", gap:16, marginTop:12, fontSize:12, color:C.textMuted }}>
-            <span style={{ background:C.surfaceHigh, padding:"4px 10px", borderRadius:4 }}>🚗 Delivery ${store.deliveryFee}</span>
-            <span style={{ background:C.surfaceHigh, padding:"4px 10px", borderRadius:4 }}>📦 Min. ${store.minOrder}</span>
+          <div style={{ display:"flex", gap:8, marginTop:12, flexWrap:"wrap" }}>
+            <span style={{ background:C.surfaceHigh, padding:"4px 10px", borderRadius:4, fontSize:12, color:C.textMuted }}>🚗 Delivery ${store.deliveryFee}</span>
+            <span style={{ background:C.surfaceHigh, padding:"4px 10px", borderRadius:4, fontSize:12, color:C.textMuted }}>📦 Min. ${store.minOrder}</span>
+            {store.whatsapp && (
+              <a href={`https://wa.me/${store.whatsapp.replace(/[^0-9]/g,"")}`} target="_blank" rel="noreferrer"
+                style={{ display:"inline-flex", alignItems:"center", gap:5, background:"#25D366", color:"#FFF", padding:"4px 12px", borderRadius:4, fontSize:12, fontWeight:600, textDecoration:"none" }}>
+                <span>WhatsApp</span>
+              </a>
+            )}
+            {store.instagram && (
+              <a href={`https://instagram.com/${store.instagram.replace("@","")}`} target="_blank" rel="noreferrer"
+                style={{ display:"inline-flex", alignItems:"center", gap:5, background:"linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", color:"#FFF", padding:"4px 12px", borderRadius:4, fontSize:12, fontWeight:600, textDecoration:"none" }}>
+                <span>Instagram</span>
+              </a>
+            )}
           </div>
         </div>
         <div style={{ padding:"1rem 1.5rem" }}>
@@ -653,54 +661,100 @@ function CustomerApp({ user, onSignOut }) {
     );
   };
 
-  // ── COMMUNITY CHAT ──
+  // ── COMMUNITY CHAT — WhatsApp style ──
   const CommunityChat = () => {
-    const [msgs,   setMsgs]   = useState(CHAT_INIT);
-    const [filter, setFilter] = useState("All");
-    const [reply,  setReply]  = useState("");
+    const CHANNELS = [
+      { id:"leslieville",  name:"Leslieville",    emoji:"🏘️", last:"Fresh sourdough ready!", time:"8:02am",  unread:3 },
+      { id:"kensington",   name:"Kensington",     emoji:"🌿", last:"Custom cakes for Easter", time:"10:30am", unread:1 },
+      { id:"chinatown",    name:"Chinatown",      emoji:"🥟", last:"Dumplings at $12/dozen",  time:"8:45am",  unread:5 },
+      { id:"brampton",     name:"Brampton",       emoji:"🫙", last:"Mango chutney ready",    time:"9:10am",  unread:0 },
+      { id:"roncesvalles", name:"Roncesvalles",   emoji:"☀️", last:"Focaccia back on menu",  time:"11:00am", unread:2 },
+      { id:"city",         name:"City-wide",      emoji:"🌆", last:"Morning update from bakers", time:"7:00am", unread:0 },
+    ];
+    const CHANNEL_MSGS = {
+      leslieville:  [{ id:1, seller:"Maria's Home Bakery", emoji:"🍞", time:"8:02am", msg:"Fresh sourdough just out of the oven! 8 loaves available today 🔥 Order by noon for afternoon pickup." },{ id:2, seller:"Sunshine Sourdough", emoji:"☀️", time:"9:30am", msg:"Country loaf also available — limited to 4 orders." }],
+      kensington:   [{ id:1, seller:"Aisha's Sweet Corner", emoji:"🧁", time:"10:30am", msg:"Taking custom cake orders for Easter weekend. DM me your design! Minimum 3 days notice needed 🎂" }],
+      chinatown:    [{ id:1, seller:"The Dumpling Den", emoji:"🥟", time:"8:45am", msg:"Making an extra batch of pork dumplings today — 5 orders left at the special price of $12/dozen!" }],
+      brampton:     [{ id:1, seller:"Biji's Spice Kitchen", emoji:"🫙", time:"9:10am", msg:"New batch of mango chutney and mixed pickle ready 🥭 Also fresh roti every morning this week." }],
+      roncesvalles: [{ id:1, seller:"Sunshine Sourdough", emoji:"☀️", time:"11:00am", msg:"Focaccia is back on the menu. Rosemary & sea salt, ready by 2pm today." }],
+      city:         [{ id:1, seller:"Hearthside", emoji:"🍞", time:"7:00am", msg:"Good morning Toronto! Explore local bakers near you and support your neighbours 🧡" }],
+    };
+
+    const [activeChannel, setActiveChannel] = useState(null);
+    const [channelMsgs,   setChannelMsgs]   = useState(CHANNEL_MSGS);
+    const [reply,         setReply]         = useState("");
     const bottomRef = useRef(null);
-    const filtered = filter==="All"?msgs:msgs.filter(m=>m.hood===filter);
+
     const send = () => {
-      if (!reply.trim()) return;
-      setMsgs(p=>[...p,{ id:Date.now(), seller:"You", hood:user.hood, emoji:"🛍️", time:"now", msg:reply.trim() }]);
+      if (!reply.trim()||!activeChannel) return;
+      setChannelMsgs(p=>({ ...p, [activeChannel.id]:[...(p[activeChannel.id]||[]),{ id:Date.now(), seller:"You", emoji:"🛍️", time:"now", msg:reply.trim(), mine:true }] }));
       setReply("");
       setTimeout(()=>bottomRef.current?.scrollIntoView({ behavior:"smooth" }),100);
     };
+
+    if (!activeChannel) return (
+      <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 120px)" }}>
+        <div style={{ padding:"1rem 1.5rem", borderBottom:`1px solid ${C.border}`, background:C.surface }}>
+          <h2 style={{ fontSize:20, fontWeight:700, color:C.text, margin:"0 0 2px", letterSpacing:"-0.02em" }}>Community</h2>
+          <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>Live broadcasts from bakers near you</p>
+        </div>
+        <div style={{ flex:1, overflowY:"auto" }}>
+          {CHANNELS.map(ch=>(
+            <div key={ch.id} onClick={()=>setActiveChannel(ch)} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 1.5rem", borderBottom:`1px solid ${C.border}`, cursor:"pointer", background:C.surface, transition:"background 0.1s" }}
+              onMouseEnter={e=>e.currentTarget.style.background=C.surfaceHigh}
+              onMouseLeave={e=>e.currentTarget.style.background=C.surface}>
+              <div style={{ width:46, height:46, borderRadius:"50%", background:C.chatBg, border:`1px solid rgba(13,110,92,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>{ch.emoji}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                  <span style={{ fontSize:14, fontWeight:600, color:C.text }}>{ch.name}</span>
+                  <span style={{ fontSize:11, color:C.textMuted }}>{ch.time}</span>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:12, color:C.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:220 }}>{ch.last}</span>
+                  {ch.unread>0 && <span style={{ background:C.chat, color:"#FFF", fontSize:10, fontWeight:700, borderRadius:"50%", width:18, height:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginLeft:8 }}>{ch.unread}</span>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    const msgs = channelMsgs[activeChannel.id]||[];
     return (
       <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 120px)" }}>
-        <div style={{ padding:"1rem 1.5rem 0.75rem", borderBottom:`1px solid ${C.border}` }}>
-          <h2 style={{ fontSize:20, fontWeight:700, color:C.text, margin:"0 0 3px", letterSpacing:"-0.02em" }}>Community Board</h2>
-          <p style={{ fontSize:12, color:C.textMuted, margin:"0 0 10px" }}>Live broadcasts from local bakers</p>
-          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4 }}>
-            {HOODS.map(h=><Pill key={h} label={h} active={filter===h} onClick={()=>setFilter(h)} color={C.chat}/>)}
+        <div style={{ padding:"0.75rem 1.5rem", borderBottom:`1px solid ${C.border}`, background:C.surface, display:"flex", alignItems:"center", gap:10 }}>
+          <button onClick={()=>setActiveChannel(null)} style={{ background:"transparent", border:"none", fontSize:18, cursor:"pointer", color:C.textMuted, padding:0 }}>←</button>
+          <div style={{ width:34, height:34, borderRadius:"50%", background:C.chatBg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:17 }}>{activeChannel.emoji}</div>
+          <div>
+            <p style={{ fontSize:14, fontWeight:700, color:C.text, margin:0 }}>{activeChannel.name}</p>
+            <p style={{ fontSize:11, color:C.textMuted, margin:0 }}>{msgs.length} broadcast{msgs.length!==1?"s":""}</p>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"0.75rem 1.5rem" }}>
-          {filtered.map(m=>(
-            <div key={m.id} style={{ display:"flex", gap:10, marginBottom:14 }}>
-              <div style={{ width:36, height:36, borderRadius:"50%", background:C.chatBg, border:`1px solid rgba(6,182,212,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>{m.emoji}</div>
-              <div style={{ flex:1 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:4 }}>
-                  <span style={{ fontSize:12, fontWeight:600, color:C.text }}>{m.seller}</span>
-                  <span style={{ fontSize:10, color:C.textMuted, background:C.surfaceHigh, padding:"1px 7px", borderRadius:3 }}>{m.hood}</span>
-                  <span style={{ fontSize:10, color:C.textMuted, marginLeft:"auto" }}>{m.time}</span>
+        <div style={{ flex:1, overflowY:"auto", padding:"1rem 1.5rem", background:C.bg, display:"flex", flexDirection:"column", gap:10 }}>
+          {msgs.map(m=>(
+            <div key={m.id} style={{ display:"flex", justifyContent:m.mine?"flex-end":"flex-start" }}>
+              {!m.mine && <div style={{ width:30, height:30, borderRadius:"50%", background:C.chatBg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, marginRight:7, flexShrink:0, alignSelf:"flex-end" }}>{m.emoji}</div>}
+              <div style={{ maxWidth:"72%" }}>
+                {!m.mine && <p style={{ fontSize:10, fontWeight:600, color:C.chat, margin:"0 0 3px" }}>{m.seller}</p>}
+                <div style={{ background:m.mine?C.accent:C.surface, border:`1px solid ${m.mine?"transparent":C.border}`, borderRadius:m.mine?"12px 12px 4px 12px":"12px 12px 12px 4px", padding:"9px 13px" }}>
+                  <p style={{ fontSize:13, color:m.mine?"#FFF":C.text, margin:0, lineHeight:1.6 }}>{m.msg}</p>
                 </div>
-                <div style={{ background:C.surfaceHigh, border:`1px solid ${C.border}`, borderRadius:"2px 8px 8px 8px", padding:"9px 12px" }}>
-                  <p style={{ fontSize:13, color:C.textSub, margin:0, lineHeight:1.6 }}>{m.msg}</p>
-                </div>
-                <button onClick={()=>{ const s=STORES.find(st=>st.name===m.seller); if(s) setActiveStore(s.id); }} style={{ marginTop:5, background:"transparent", border:"none", fontSize:11, color:C.chat, cursor:"pointer", padding:0, fontWeight:600 }}>
-                  View store →
-                </button>
+                {!m.mine && (
+                  <button onClick={()=>{ const s=STORES.find(st=>st.name===m.seller); if(s) setActiveStore(s.id); }} style={{ background:"transparent", border:"none", fontSize:11, color:C.chat, cursor:"pointer", padding:"3px 0 0", fontWeight:600 }}>
+                    View store →
+                  </button>
+                )}
+                <p style={{ fontSize:10, color:C.textMuted, margin:"2px 0 0", textAlign:m.mine?"right":"left" }}>{m.time}</p>
               </div>
             </div>
           ))}
           <div ref={bottomRef}/>
         </div>
-        <div style={{ padding:"0.75rem 1.5rem", borderTop:`1px solid ${C.border}`, display:"flex", gap:8 }}>
-          <input value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Ask a baker a question..."
-            style={{ flex:1, padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none" }}
-            onFocus={e=>e.target.style.borderColor=C.chat} onBlur={e=>e.target.style.borderColor=C.border}/>
-          <button onClick={send} style={{ background:C.chat, color:"#000", border:"none", borderRadius:5, padding:"10px 16px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Send</button>
+        <div style={{ padding:"0.625rem 1.25rem", borderTop:`1px solid ${C.border}`, background:C.surface, display:"flex", gap:8, alignItems:"center" }}>
+          <input value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Message..."
+            style={{ flex:1, padding:"10px 14px", border:`1px solid ${C.border}`, borderRadius:20, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none" }}/>
+          <button onClick={send} style={{ width:38, height:38, borderRadius:"50%", background:C.accent, border:"none", cursor:"pointer", color:"#FFF", fontSize:15, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>→</button>
         </div>
       </div>
     );
@@ -863,56 +917,108 @@ function SellerApp({ user, onSignOut }) {
     </div>
   );
 
-  // ── SELLER COMMUNITY ──
+  // ── SELLER COMMUNITY — WhatsApp style ──
   const SellerCommunity = () => {
-    const [msgs,  setMsgs]  = useState(CHAT_INIT);
+    const CHANNELS = [
+      { id:"leslieville",    name:"Leslieville",     emoji:"🏘️", last:"Fresh sourdough ready!", time:"8:02am",  unread:3 },
+      { id:"kensington",     name:"Kensington",      emoji:"🌿", last:"Custom cakes for Easter", time:"10:30am", unread:1 },
+      { id:"chinatown",      name:"Chinatown",        emoji:"🥟", last:"Dumplings at $12/dozen", time:"8:45am",  unread:5 },
+      { id:"brampton",       name:"Brampton",         emoji:"🫙", last:"Mango chutney ready",   time:"9:10am",  unread:0 },
+      { id:"roncesvalles",   name:"Roncesvalles",     emoji:"☀️", last:"Focaccia back on menu", time:"11:00am", unread:2 },
+      { id:"city",           name:"City-wide",        emoji:"🌆", last:"Broadcast to all",      time:"7:00am",  unread:0 },
+    ];
+    const CHANNEL_MSGS = {
+      leslieville:  [{ id:1, seller:"Maria's Home Bakery", emoji:"🍞", mine:false, time:"8:02am", msg:"Fresh sourdough just out of the oven! 8 loaves available today 🔥 Order by noon for afternoon pickup." },{ id:2, seller:"Sunshine Sourdough", emoji:"☀️", mine:false, time:"9:30am", msg:"Country loaf also available today — limited to 4 orders." }],
+      kensington:   [{ id:1, seller:"Aisha's Sweet Corner", emoji:"🧁", mine:false, time:"10:30am", msg:"Taking custom cake orders for Easter weekend. DM me your design! Minimum 3 days notice needed 🎂" }],
+      chinatown:    [{ id:1, seller:"The Dumpling Den", emoji:"🥟", mine:false, time:"8:45am", msg:"Making an extra batch of pork dumplings today — 5 orders left at the special price of $12/dozen. First come first served!" }],
+      brampton:     [{ id:1, seller:"Biji's Spice Kitchen", emoji:"🫙", mine:false, time:"9:10am", msg:"New batch of mango chutney and mixed pickle ready 🥭 Also fresh roti every morning this week." }],
+      roncesvalles: [{ id:1, seller:"Sunshine Sourdough", emoji:"☀️", mine:false, time:"11:00am", msg:"Focaccia is back on the menu. Rosemary & sea salt, ready by 2pm today." }],
+      city:         [{ id:1, seller:"Hearthside", emoji:"🍞", mine:false, time:"7:00am", msg:"Good morning Toronto bakers! Remember to update your availability for the week 🎉" }],
+    };
+
+    const [activeChannel, setActiveChannel] = useState(null);
+    const [channelMsgs, setChannelMsgs] = useState(CHANNEL_MSGS);
     const [draft, setDraft] = useState("");
     const [reach, setReach] = useState("neighbourhood");
-    const [sent,  setSent]  = useState(false);
-    const broadcast = () => {
-      if (!draft.trim()) return;
-      setMsgs(p=>[...p,{ id:Date.now(), seller:user.business, hood:user.hood||"Leslieville", emoji:"🍞", time:"just now", msg:draft.trim() }]);
-      setDraft(""); setSent(true); setTimeout(()=>setSent(false),2500);
+    const [sent, setSent] = useState(false);
+    const bottomRef = useRef(null);
+
+    const sendMsg = () => {
+      if (!draft.trim()||!activeChannel) return;
+      const newMsg = { id:Date.now(), seller:user.business, emoji:"🍞", mine:true, time:"now", msg:draft.trim() };
+      setChannelMsgs(p=>({ ...p, [activeChannel.id]:[...(p[activeChannel.id]||[]), newMsg] }));
+      setDraft(""); setSent(true); setTimeout(()=>setSent(false),2000);
+      setTimeout(()=>bottomRef.current?.scrollIntoView({ behavior:"smooth" }),100);
     };
-    return (
-      <div style={{ padding:"2rem", maxWidth:620 }}>
-        <div style={{ marginBottom:"1.75rem" }}>
-          <h1 style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 4px", letterSpacing:"-0.02em" }}>Community Board</h1>
-          <p style={{ color:C.textMuted, fontSize:13, margin:0 }}>Broadcast today's bakes to your local community</p>
+
+    // Channel list view
+    if (!activeChannel) return (
+      <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 56px)", fontFamily:"'DM Sans', system-ui, sans-serif" }}>
+        <div style={{ padding:"1rem 1.5rem", borderBottom:`1px solid ${C.border}`, background:C.surface }}>
+          <h1 style={{ fontSize:20, fontWeight:700, color:C.text, margin:"0 0 2px", letterSpacing:"-0.02em" }}>Community</h1>
+          <p style={{ fontSize:12, color:C.textMuted, margin:0 }}>Broadcast to neighbourhoods near you</p>
         </div>
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:14 }}>
-          <p style={{ fontWeight:600, fontSize:11, color:C.textMuted, margin:"0 0 1rem", textTransform:"uppercase", letterSpacing:"0.06em" }}>New Broadcast</p>
-          <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-            {[{ v:"neighbourhood", label:`📍 ${user.hood||"Neighbourhood"}` },{ v:"city", label:"🌆 City-wide" }].map(r=>(
-              <button key={r.v} onClick={()=>setReach(r.v)} style={{ padding:"6px 14px", border:`1px solid ${reach===r.v?C.chat:C.border}`, borderRadius:4, background:reach===r.v?C.chatBg:"transparent", color:reach===r.v?C.chat:C.textMuted, fontSize:12, fontWeight:500, cursor:"pointer" }}>{r.label}</button>
-            ))}
-          </div>
-          <textarea value={draft} onChange={e=>setDraft(e.target.value)} rows={4} placeholder="e.g. Fresh sourdough just out of the oven! 6 loaves available..."
-            style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box", lineHeight:1.6 }}
-            onFocus={e=>e.target.style.borderColor=C.chat} onBlur={e=>e.target.style.borderColor=C.border}/>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:10 }}>
-            <span style={{ fontSize:11, color:C.textMuted }}>{draft.length}/280</span>
-            <button onClick={broadcast} style={{ background:sent?"rgba(34,197,94,0.15)":C.chat, color:sent?C.success:"#000", border:`1px solid ${sent?C.success:"transparent"}`, borderRadius:4, padding:"9px 18px", fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.2s" }}>
-              {sent?"✓ Sent!":"Broadcast →"}
-            </button>
-          </div>
-        </div>
-        <p style={{ fontSize:10, fontWeight:700, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 10px" }}>Recent posts</p>
-        {msgs.slice(-5).reverse().map(m=>(
-          <div key={m.id} style={{ display:"flex", gap:10, marginBottom:12 }}>
-            <div style={{ width:34, height:34, borderRadius:"50%", background:m.seller===user.business?C.accentBg:C.chatBg, border:`1px solid ${m.seller===user.business?C.accentBorder:"rgba(6,182,212,0.2)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, flexShrink:0 }}>{m.emoji}</div>
-            <div style={{ flex:1 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
-                <span style={{ fontSize:12, fontWeight:600, color:m.seller===user.business?C.accent:C.text }}>{m.seller}</span>
-                <span style={{ fontSize:10, background:C.surfaceHigh, color:C.textMuted, padding:"1px 7px", borderRadius:3 }}>{m.hood}</span>
-                <span style={{ fontSize:10, color:C.textMuted, marginLeft:"auto" }}>{m.time}</span>
-              </div>
-              <div style={{ background:C.surfaceHigh, border:`1px solid ${C.border}`, borderRadius:"2px 7px 7px 7px", padding:"8px 11px" }}>
-                <p style={{ fontSize:12, color:C.textSub, margin:0, lineHeight:1.55 }}>{m.msg}</p>
+        <div style={{ flex:1, overflowY:"auto" }}>
+          {CHANNELS.map(ch=>(
+            <div key={ch.id} onClick={()=>setActiveChannel(ch)} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 1.5rem", borderBottom:`1px solid ${C.border}`, cursor:"pointer", background:C.surface }}
+              onMouseEnter={e=>e.currentTarget.style.background=C.surfaceHigh}
+              onMouseLeave={e=>e.currentTarget.style.background=C.surface}>
+              <div style={{ width:46, height:46, borderRadius:"50%", background:C.accentBg, border:`1px solid ${C.accentBorder}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>{ch.emoji}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
+                  <span style={{ fontSize:14, fontWeight:600, color:C.text }}>{ch.name}</span>
+                  <span style={{ fontSize:11, color:C.textMuted }}>{ch.time}</span>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:12, color:C.textMuted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:220 }}>{ch.last}</span>
+                  {ch.unread>0 && <span style={{ background:C.chat, color:"#FFF", fontSize:10, fontWeight:700, borderRadius:"50%", width:18, height:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ch.unread}</span>}
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+    );
+
+    // Chat view
+    const msgs = channelMsgs[activeChannel.id]||[];
+    return (
+      <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 56px)" }}>
+        <div style={{ padding:"0.875rem 1.5rem", borderBottom:`1px solid ${C.border}`, background:C.surface, display:"flex", alignItems:"center", gap:12 }}>
+          <button onClick={()=>setActiveChannel(null)} style={{ background:"transparent", border:"none", fontSize:18, cursor:"pointer", color:C.textMuted, padding:0, lineHeight:1 }}>←</button>
+          <div style={{ width:36, height:36, borderRadius:"50%", background:C.accentBg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{activeChannel.emoji}</div>
+          <div>
+            <p style={{ fontSize:14, fontWeight:700, color:C.text, margin:0 }}>{activeChannel.name}</p>
+            <p style={{ fontSize:11, color:C.textMuted, margin:0 }}>{msgs.length} message{msgs.length!==1?"s":""}</p>
           </div>
-        ))}
+          <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
+            {[{ v:"neighbourhood", label:"📍 Local" },{ v:"city", label:"🌆 City" }].map(r=>(
+              <button key={r.v} onClick={()=>setReach(r.v)} style={{ padding:"5px 11px", border:`1px solid ${reach===r.v?C.accent:C.border}`, borderRadius:4, background:reach===r.v?C.accentBg:"transparent", color:reach===r.v?C.accent:C.textMuted, fontSize:11, cursor:"pointer" }}>{r.label}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"1rem 1.5rem", background:C.bg, display:"flex", flexDirection:"column", gap:10 }}>
+          {msgs.map(m=>(
+            <div key={m.id} style={{ display:"flex", justifyContent:m.mine?"flex-end":"flex-start" }}>
+              {!m.mine && <div style={{ width:32, height:32, borderRadius:"50%", background:C.chatBg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, marginRight:8, flexShrink:0 }}>{m.emoji}</div>}
+              <div style={{ maxWidth:"72%" }}>
+                {!m.mine && <p style={{ fontSize:10, fontWeight:600, color:C.chat, margin:"0 0 3px" }}>{m.seller}</p>}
+                <div style={{ background:m.mine?C.accent:C.surface, border:`1px solid ${m.mine?"transparent":C.border}`, borderRadius:m.mine?"12px 12px 4px 12px":"12px 12px 12px 4px", padding:"9px 13px" }}>
+                  <p style={{ fontSize:13, color:m.mine?"#FFF":C.text, margin:0, lineHeight:1.6 }}>{m.msg}</p>
+                </div>
+                <p style={{ fontSize:10, color:C.textMuted, margin:"3px 0 0", textAlign:m.mine?"right":"left" }}>{m.time}</p>
+              </div>
+            </div>
+          ))}
+          <div ref={bottomRef}/>
+        </div>
+        <div style={{ padding:"0.75rem 1.25rem", borderTop:`1px solid ${C.border}`, background:C.surface, display:"flex", gap:8, alignItems:"flex-end" }}>
+          <textarea value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendMsg(); } }} rows={1} placeholder={`Broadcast to ${activeChannel.name}...`}
+            style={{ flex:1, padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:20, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", lineHeight:1.5, maxHeight:100 }}/>
+          <button onClick={sendMsg} style={{ width:40, height:40, borderRadius:"50%", background:sent?C.success:C.accent, border:"none", cursor:"pointer", fontSize:16, color:"#FFF", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            {sent?"✓":"→"}
+          </button>
+        </div>
       </div>
     );
   };
@@ -975,11 +1081,32 @@ function SellerApp({ user, onSignOut }) {
 
   // ── SELLER STOREFRONT ──
   const Storefront = () => {
-    const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState({ name:"", price:"", emoji:"🍞", desc:"", stock:"10" });
-    const [imageFile, setImageFile] = useState(null);
+    const [showModal,    setShowModal]    = useState(false);
+    const [editProduct,  setEditProduct]  = useState(null);
+    const [form,         setForm]         = useState({ name:"", price:"", emoji:"🍞", desc:"", stock:"10" });
+    const [editForm,     setEditForm]     = useState(null);
+    const [imageFile,    setImageFile]    = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
-    const [uploading, setUploading] = useState(false);
+    const [uploading,    setUploading]    = useState(false);
+    const [saving,       setSaving]       = useState(false);
+
+    const openEdit = (p) => { setEditProduct(p); setEditForm({ name:p.name, price:String(p.price||""), emoji:p.emoji||"🍞", desc:p.desc||"", stock:String(p.stock||"10") }); };
+
+    const saveEdit = async () => {
+      if (!editForm.name||!editForm.price||!editProduct) return;
+      setSaving(true);
+      const updates = { name:editForm.name, price:parseFloat(editForm.price)||0, emoji:editForm.emoji||"🍞", desc:editForm.desc, stock:parseInt(editForm.stock)||0 };
+      const { error } = await supabase.from("products").update(updates).eq("id", editProduct.id);
+      if (!error) setProducts(p=>p.map(prod=>prod.id===editProduct.id?{...prod,...updates}:prod));
+      setSaving(false); setEditProduct(null); setEditForm(null);
+    };
+
+    const deleteProduct = async () => {
+      if (!editProduct||!window.confirm("Delete this product? This cannot be undone.")) return;
+      await supabase.from("products").delete().eq("id", editProduct.id);
+      setProducts(p=>p.filter(prod=>prod.id!==editProduct.id));
+      setEditProduct(null); setEditForm(null);
+    };
 
     const handleImage = (e) => {
       const file = e.target.files[0];
@@ -1036,13 +1163,18 @@ function SellerApp({ user, onSignOut }) {
         )}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,minmax(0,1fr))", gap:10 }}>
           {products.map(p=>(
-            <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden" }}>
+            <div key={p.id} onClick={()=>setEditProduct({...p})} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", cursor:"pointer", transition:"border-color 0.15s" }}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=C.borderMid}
+              onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
               {p.image_url
                 ? <img src={p.image_url} alt={p.name} style={{ width:"100%", height:120, objectFit:"cover", display:"block" }}/>
                 : <div style={{ width:"100%", height:80, background:C.surfaceHigh, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>{p.emoji}</div>
               }
               <div style={{ padding:"0.875rem" }}>
-                <p style={{ fontSize:14, fontWeight:600, color:C.text, margin:"0 0 3px", letterSpacing:"-0.01em" }}>{p.name}</p>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:3 }}>
+                  <p style={{ fontSize:14, fontWeight:600, color:C.text, margin:0, letterSpacing:"-0.01em" }}>{p.name}</p>
+                  <span style={{ fontSize:10, color:C.accent, fontWeight:600, background:C.accentBg, padding:"2px 7px", borderRadius:3, flexShrink:0, marginLeft:4 }}>Edit</span>
+                </div>
                 <p style={{ fontSize:11, color:C.textMuted, margin:"0 0 10px", lineHeight:1.5 }}>{p.desc}</p>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderTop:`1px solid ${C.border}`, paddingTop:9 }}>
                   <span style={{ fontSize:16, fontWeight:700, color:C.accent, letterSpacing:"-0.01em" }}>${p.price?.toFixed(2)||"0.00"}</span>
@@ -1054,6 +1186,39 @@ function SellerApp({ user, onSignOut }) {
             </div>
           ))}
         </div>
+        {/* ── EDIT PRODUCT MODAL ── */}
+        {editProduct && editForm && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"1.75rem", width:440, maxWidth:"95vw", maxHeight:"90vh", overflowY:"auto" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem" }}>
+                <h2 style={{ fontSize:18, fontWeight:700, color:C.text, margin:0, letterSpacing:"-0.02em" }}>Edit Product</h2>
+                <button onClick={()=>{ setEditProduct(null); setEditForm(null); }} style={{ background:C.surfaceHigh, border:"none", width:28, height:28, borderRadius:4, fontSize:14, cursor:"pointer", color:C.textMuted }}>✕</button>
+              </div>
+              {editProduct.image_url && (
+                <img src={editProduct.image_url} alt={editProduct.name} style={{ width:"100%", height:120, objectFit:"cover", borderRadius:6, marginBottom:14 }}/>
+              )}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                <Inp label="Product Name" value={editForm.name}  onChange={v=>setEditForm({...editForm,name:v})}  ph="e.g. Blueberry Scones"/>
+                <Inp label="Price ($)"    value={editForm.price} onChange={v=>setEditForm({...editForm,price:v})} ph="16.00"/>
+                <Inp label="Stock"        value={editForm.stock} onChange={v=>setEditForm({...editForm,stock:v})} ph="10"/>
+                <Inp label="Emoji"        value={editForm.emoji} onChange={v=>setEditForm({...editForm,emoji:v})} ph="🍞"/>
+              </div>
+              <div style={{ marginBottom:16 }}>
+                <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Description</label>
+                <textarea value={editForm.desc} onChange={e=>setEditForm({...editForm,desc:e.target.value})} rows={3}
+                  style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box" }}/>
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={deleteProduct} style={{ padding:"10px 14px", border:`1px solid ${C.danger}`, borderRadius:5, background:C.dangerBg, color:C.danger, cursor:"pointer", fontSize:13, fontWeight:600 }}>Delete</button>
+                <button onClick={()=>{ setEditProduct(null); setEditForm(null); }} style={{ flex:1, padding:"10px", border:`1px solid ${C.border}`, borderRadius:5, background:"transparent", color:C.textMuted, cursor:"pointer", fontSize:13 }}>Cancel</button>
+                <button onClick={saveEdit} disabled={saving} style={{ flex:2, padding:"10px", background:saving?"rgba(196,98,45,0.4)":C.accent, color:"#FFF", border:"none", borderRadius:5, cursor:saving?"default":"pointer", fontSize:13, fontWeight:700 }}>
+                  {saving?"Saving...":"Save Changes"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showModal && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"1.75rem", width:440, maxWidth:"95vw" }}>
@@ -1122,29 +1287,37 @@ function SellerApp({ user, onSignOut }) {
             <Pill key={s} label={s==="all"?`All (${liveOrders.length})`:s.charAt(0).toUpperCase()+s.slice(1)} active={filter===s} onClick={()=>setFilter(s)}/>
           ))}
         </div>
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ borderBottom:`1px solid ${C.border}` }}>
-                {["Order","Customer","Items","Total","Status","Date"].map(h=>(
-                  <th key={h} style={{ textAlign:"left", padding:"10px 14px", color:C.textMuted, fontWeight:600, fontSize:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((o,i)=>(
-                <tr key={o.id} style={{ borderBottom:i<filtered.length-1?`1px solid ${C.border}`:"none" }}>
-                  <td style={{ padding:"11px 14px", color:C.accent, fontWeight:700, fontSize:12 }}>{o.id}</td>
-                  <td style={{ padding:"11px 14px", color:C.text, fontWeight:500 }}>{o.customer}</td>
-                  <td style={{ padding:"11px 14px", color:C.textMuted, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.items}</td>
-                  <td style={{ padding:"11px 14px", color:C.text, fontWeight:600 }}>${o.total?.toFixed(2)||"0.00"}</td>
-                  <td style={{ padding:"11px 14px" }}><Badge status={o.status}/></td>
-                  <td style={{ padding:"11px 14px", color:C.textMuted }}>{o.date}</td>
+        {filtered.length===0 ? (
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"3rem", textAlign:"center" }}>
+            <p style={{ fontSize:28, margin:"0 0 8px" }}>📋</p>
+            <p style={{ fontSize:14, fontWeight:600, color:C.text, margin:"0 0 4px" }}>No orders yet</p>
+            <p style={{ fontSize:13, color:C.textMuted, margin:0 }}>When customers place orders they'll appear here.</p>
+          </div>
+        ) : (
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+              <thead>
+                <tr style={{ borderBottom:`1px solid ${C.border}` }}>
+                  {["Order","Customer","Items","Total","Status","Date"].map(h=>(
+                    <th key={h} style={{ textAlign:"left", padding:"10px 14px", color:C.textMuted, fontWeight:600, fontSize:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((o,i)=>(
+                  <tr key={o.id} style={{ borderBottom:i<filtered.length-1?`1px solid ${C.border}`:"none" }}>
+                    <td style={{ padding:"11px 14px", color:C.accent, fontWeight:700, fontSize:12 }}>{o.id}</td>
+                    <td style={{ padding:"11px 14px", color:C.text, fontWeight:500 }}>{o.customer}</td>
+                    <td style={{ padding:"11px 14px", color:C.textMuted, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.items}</td>
+                    <td style={{ padding:"11px 14px", color:C.text, fontWeight:600 }}>${o.total?.toFixed(2)||"0.00"}</td>
+                    <td style={{ padding:"11px 14px" }}><Badge status={o.status}/></td>
+                    <td style={{ padding:"11px 14px", color:C.textMuted }}>{o.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     );
   };
@@ -1226,6 +1399,7 @@ function SellerApp({ user, onSignOut }) {
           method:"POST",
           headers:{
             "Content-Type":"application/json",
+            "x-api-key": process.env.REACT_APP_ANTHROPIC_KEY || "",
             "anthropic-version":"2023-06-01",
             "anthropic-dangerous-direct-browser-access":"true",
           },
@@ -1378,6 +1552,140 @@ Return ONLY a valid JSON object with no markdown fences, no extra text, no expla
     );
   };
 
+  // ── STORE PROFILE ──
+  const StoreProfile = () => {
+    const [profile, setProfile] = useState({
+      business: user.business||"",
+      desc: user.storeDesc||"",
+      hood: user.hood||"Lessieville",
+      whatsapp: user.whatsapp||"",
+      instagram: user.instagram||"",
+    });
+    const [logoFile,    setLogoFile]    = useState(null);
+    const [logoPreview, setLogoPreview] = useState(user.logoUrl||null);
+    const [saving,      setSaving]      = useState(false);
+    const [saved,       setSaved]       = useState(false);
+
+    const handleLogo = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    };
+
+    const save = async () => {
+      setSaving(true);
+      let logoUrl = logoPreview;
+      if (logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `logos/${user.id}.${ext}`;
+        const { error:upErr } = await supabase.storage.from("product-images").upload(path, logoFile, { upsert:true });
+        if (!upErr) {
+          const { data:urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+          logoUrl = urlData.publicUrl;
+        }
+      }
+      await supabase.from("profiles").update({
+        business: profile.business,
+        desc: profile.desc,
+        hood: profile.hood,
+        logo_url: logoUrl,
+        whatsapp: profile.whatsapp,
+        instagram: profile.instagram,
+      }).eq("id", user.id);
+      setSaving(false); setSaved(true); setTimeout(()=>setSaved(false),2500);
+    };
+
+    const F = ({ label, value, onChange, ph }) => (
+      <div style={{ marginBottom:14 }}>
+        <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</label>
+        <input value={value} onChange={e=>onChange(e.target.value)} placeholder={ph}
+          style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", boxSizing:"border-box" }}
+          onFocus={e=>e.target.style.borderColor=C.accent} onBlur={e=>e.target.style.borderColor=C.border}/>
+      </div>
+    );
+
+    return (
+      <div style={{ padding:"2rem", maxWidth:600 }}>
+        <div style={{ marginBottom:"1.5rem" }}>
+          <h1 style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 4px", letterSpacing:"-0.02em" }}>Store Profile</h1>
+          <p style={{ color:C.textMuted, fontSize:13, margin:0 }}>Customize how your store appears to customers</p>
+        </div>
+
+        {/* Logo upload */}
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:14 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Store Logo</p>
+          <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+            <div style={{ width:80, height:80, borderRadius:14, background:C.surfaceHigh, border:`2px dashed ${logoPreview?C.accent:C.border}`, overflow:"hidden", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              {logoPreview
+                ? <img src={logoPreview} alt="logo" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                : <span style={{ fontSize:11, color:C.textMuted, textAlign:"center", padding:"0 6px" }}>No logo yet</span>
+              }
+            </div>
+            <div style={{ flex:1 }}>
+              <p style={{ fontSize:13, fontWeight:600, color:C.text, margin:"0 0 4px" }}>
+                {logoPreview?"Logo uploaded ✓":"No logo uploaded yet"}
+              </p>
+              <p style={{ fontSize:12, color:C.textMuted, margin:"0 0 10px" }}>
+                Your logo appears on your store page and in the marketplace. Square images work best.
+              </p>
+              <div style={{ display:"flex", gap:8 }}>
+                <label style={{ display:"inline-block", background:C.accent, color:"#FFF", borderRadius:5, padding:"9px 16px", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+                  <input type="file" accept="image/*" onChange={handleLogo} style={{ display:"none" }}/>
+                  {logoPreview?"Change Logo":"Upload Logo"}
+                </label>
+                {logoPreview && (
+                  <button onClick={()=>setLogoPreview(null)} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius:5, padding:"9px 14px", fontSize:12, color:C.textMuted, cursor:"pointer" }}>
+                    Remove
+                  </button>
+                )}
+              </div>
+              <p style={{ fontSize:11, color:C.textMuted, margin:"6px 0 0", opacity:0.7 }}>JPG, PNG or WEBP · Recommended 400×400px · Max 5MB</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Store details */}
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:14 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Store Details</p>
+          <F label="Bakery Name" value={profile.business} onChange={v=>setProfile({...profile,business:v})} ph="Maria's Home Bakery"/>
+          <div style={{ marginBottom:14 }}>
+            <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Store Description</label>
+            <textarea value={profile.desc} onChange={e=>setProfile({...profile,desc:e.target.value})} rows={3} placeholder="Tell customers what makes your bakery special..."
+              style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box" }}/>
+          </div>
+          <div style={{ marginBottom:0 }}>
+            <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Neighbourhood</label>
+            <select value={profile.hood} onChange={e=>setProfile({...profile,hood:e.target.value})}
+              style={{ width:"100%", padding:"10px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none" }}>
+              {HOODS.filter(h=>h!=="All").map(h=><option key={h} value={h}>{h}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Social links */}
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:14 }}>
+          <p style={{ fontSize:11, fontWeight:700, color:C.textMuted, textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Social & Contact</p>
+          <F label="Instagram Handle" value={profile.instagram} onChange={v=>setProfile({...profile,instagram:v})} ph="@mariashomebakery"/>
+          <F label="WhatsApp Number"  value={profile.whatsapp}  onChange={v=>setProfile({...profile,whatsapp:v})}  ph="+1 (416) 555-0100"/>
+        </div>
+
+        {/* Store link preview */}
+        <div style={{ background:C.accentBg, border:`1px solid ${C.accentBorder}`, borderRadius:8, padding:"1rem 1.25rem", marginBottom:"1.5rem" }}>
+          <p style={{ fontSize:11, fontWeight:700, color:C.accent, margin:"0 0 4px" }}>Your store link</p>
+          <p style={{ fontSize:13, color:C.textSub, margin:"0 0 8px" }}>Share this with customers so they can find your store directly:</p>
+          <div style={{ background:C.surface, borderRadius:5, padding:"8px 12px", fontSize:12, color:C.text, fontFamily:"monospace" }}>
+            hearthside.app/store/{user.id?.slice(0,8)||"your-id"}
+          </div>
+        </div>
+
+        <button onClick={save} disabled={saving} style={{ background:saved?C.success:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"11px 24px", fontSize:13, fontWeight:700, cursor:"pointer", transition:"background 0.2s" }}>
+          {saving?"Saving...":saved?"✓ Profile Saved!":"Save Profile"}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div style={{ display:"flex", height:"100vh", fontFamily:"'DM Sans', system-ui, sans-serif", background:C.bg, overflow:"hidden" }}>
       <Sidebar/>
@@ -1389,6 +1697,7 @@ Return ONLY a valid JSON object with no markdown fences, no extra text, no expla
         {view==="delivery"   && <Delivery/>}
         {view==="marketing"  && <Marketing/>}
         {view==="community"  && <SellerCommunity/>}
+        {view==="profile"    && <StoreProfile/>}
       </main>
     </div>
   );
