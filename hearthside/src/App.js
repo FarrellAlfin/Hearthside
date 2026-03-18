@@ -103,6 +103,7 @@ const SELLER_NAV = [
   { id:"dashboard",  icon:"▦", label:"Dashboard"  },
   { id:"storefront", icon:"◫", label:"Storefront" },
   { id:"orders",     icon:"≡", label:"Orders"     },
+  { id:"customers",  icon:"◉", label:"Customers"  },
   { id:"finances",   icon:"◈", label:"Finances"   },
   { id:"delivery",   icon:"⌖", label:"Delivery"   },
   { id:"community",  icon:"◎", label:"Community"  },
@@ -1021,8 +1022,8 @@ function SellerApp({ user, onSignOut }) {
           }
         </div>
         <div style={{ minWidth:0, flex:1 }}>
-          <p style={{ color:C.sidebarText, fontSize:13, fontWeight:700, margin:0, letterSpacing:"-0.01em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profileData.business||user.business}</p>
-          <p style={{ color:C.sidebarMuted, fontSize:10, margin:0 }}>Edit store profile →</p>
+          <p style={{ color:C.sidebarText, fontSize:15, fontWeight:700, margin:0, letterSpacing:"-0.01em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profileData.business||user.business}</p>
+          <p style={{ color:C.sidebarMuted, fontSize:12, margin:0 }}>Edit store profile →</p>
         </div>
       </button>
       <nav style={{ flex:1, padding:"0.5rem" }}>
@@ -1034,15 +1035,15 @@ function SellerApp({ user, onSignOut }) {
               background:active?"rgba(196,98,45,0.15)":"transparent", border:"none",
               borderRadius:5, cursor:"pointer", marginBottom:1, textAlign:"left"
             }}>
-              <span style={{ fontSize:13, color:active?C.accent:C.sidebarMuted, width:16, textAlign:"center" }}>{item.icon}</span>
-              <span style={{ fontSize:13, color:active?C.accent:C.sidebarText, fontWeight:active?600:400 }}>{item.label}</span>
+              <span style={{ fontSize:15, color:active?C.accent:C.sidebarMuted, width:18, textAlign:"center" }}>{item.icon}</span>
+              <span style={{ fontSize:15, color:active?C.accent:C.sidebarText, fontWeight:active?600:400 }}>{item.label}</span>
             </button>
           );
         })}
       </nav>
       <div style={{ padding:"0.75rem" }}>
         <button onClick={onSignOut} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"8px 10px", background:"transparent", border:"1px solid rgba(255,255,255,0.1)", borderRadius:5, cursor:"pointer" }}>
-          <span style={{ fontSize:12, color:C.sidebarMuted }}>Sign out</span>
+          <span style={{ fontSize:14, color:C.sidebarMuted }}>Sign out</span>
         </button>
       </div>
     </div>
@@ -1156,7 +1157,7 @@ function SellerApp({ user, onSignOut }) {
 
   // ── SELLER DASHBOARD ──
   const Dashboard = () => {
-  // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars
     const top         = [...products].sort((a,b)=>(b.sold||0)-(a.sold||0))[0]||products[0];
     const rev         = parseFloat(finRevenue)||0;
     const totalCosts  = finCosts.reduce((s,c)=>s+c.amount,0);
@@ -1712,9 +1713,11 @@ function SellerApp({ user, onSignOut }) {
   const Finances = () => {
     const COST_CATS = COST_CATS_DEF;
     const costs   = finCosts;
-    const revenue = finRevenue;
     const setCosts   = setFinCosts;
-    const setRevenue = setFinRevenue;
+    // Local revenue input — avoids parent re-render focus loss
+    const [localRevenue, setLocalRevenue] = useState(finRevenue);
+    const revenue = localRevenue;
+    const setRevenue = (v) => { setLocalRevenue(v); setFinRevenue(v); };
     const [newCat,    setNewCat]    = useState("ingredients");
     const [newLabel,  setNewLabel]  = useState("");
     const [newAmt,    setNewAmt]    = useState("");
@@ -2060,6 +2063,159 @@ function SellerApp({ user, onSignOut }) {
 
 
 
+  // ── CUSTOMERS ──
+  const Customers = () => {
+    const [customers, setCustomers] = useState([]);
+    const [showAdd,   setShowAdd]   = useState(false);
+    const [search,    setSearch]    = useState("");
+    const [form, setForm] = useState({ name:"", phone:"", email:"", notes:"", tag:"regular" });
+
+    const TAGS = [
+      { v:"regular",   label:"Regular",     bg:"rgba(196,98,45,0.1)",  color:"#C4622D" },
+      { v:"vip",       label:"VIP",         bg:"rgba(160,112,16,0.1)", color:"#A07010" },
+      { v:"wholesale", label:"Wholesale",   bg:"rgba(26,107,156,0.1)", color:"#1A6B9C" },
+      { v:"new",       label:"New",         bg:"rgba(30,122,72,0.1)",  color:"#1E7A48" },
+    ];
+
+    const addCustomer = () => {
+      if (!form.name.trim()) return;
+      setCustomers(p=>[...p, { id:Date.now(), ...form, since:new Date().toLocaleDateString("en-US",{month:"short",year:"numeric"}), orders:0 }]);
+      setForm({ name:"", phone:"", email:"", notes:"", tag:"regular" });
+      setShowAdd(false);
+    };
+
+    const removeCustomer = (id) => setCustomers(p=>p.filter(c=>c.id!==id));
+
+    const filtered = customers.filter(c=>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.phone.includes(search) ||
+      c.email.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+      <div style={{ padding:"2rem" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem" }}>
+          <div>
+            <h1 style={{ fontSize:24, fontWeight:700, color:C.text, margin:"0 0 4px", letterSpacing:"-0.02em" }}>Customers</h1>
+            <p style={{ fontSize:13, color:C.textMuted, margin:0 }}>Your regulars, VIPs, and wholesale buyers</p>
+          </div>
+          <button onClick={()=>setShowAdd(true)} style={{ background:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"9px 16px", fontSize:13, fontWeight:700, cursor:"pointer" }}>+ Add Customer</button>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,minmax(0,1fr))", gap:10, marginBottom:"1.5rem" }}>
+          {TAGS.map(tag=>(
+            <div key={tag.v} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1rem 1.25rem" }}>
+              <p style={{ fontSize:10, color:C.textMuted, margin:"0 0 6px", textTransform:"uppercase", letterSpacing:"0.1em", fontWeight:600 }}>{tag.label}</p>
+              <p style={{ fontSize:28, fontWeight:700, margin:0, color:tag.color, letterSpacing:"-0.02em" }}>
+                {customers.filter(c=>c.tag===tag.v).length}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div style={{ marginBottom:"1rem" }}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by name, phone or email..."
+            style={{ width:"100%", padding:"10px 14px", border:`1px solid ${C.border}`, borderRadius:6, fontSize:13, color:C.text, background:C.surface, outline:"none", boxSizing:"border-box" }}/>
+        </div>
+
+        {/* Customer list */}
+        {customers.length===0 ? (
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"3rem", textAlign:"center" }}>
+            <p style={{ fontSize:28, margin:"0 0 10px" }}>👥</p>
+            <p style={{ fontSize:15, fontWeight:600, color:C.text, margin:"0 0 6px" }}>No customers yet</p>
+            <p style={{ fontSize:13, color:C.textMuted, margin:"0 0 1.25rem" }}>Build your customer list to track your regulars, VIPs, and wholesale buyers.</p>
+            <button onClick={()=>setShowAdd(true)} style={{ background:C.accent, color:"#FFF", border:"none", borderRadius:5, padding:"10px 20px", fontSize:13, fontWeight:700, cursor:"pointer" }}>+ Add your first customer</button>
+          </div>
+        ) : filtered.length===0 ? (
+          <p style={{ fontSize:13, color:C.textMuted, padding:"1rem 0" }}>No customers match "{search}"</p>
+        ) : (
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+              <thead>
+                <tr style={{ borderBottom:`1px solid ${C.border}` }}>
+                  {["Name","Contact","Tag","Notes","Since",""].map(h=>(
+                    <th key={h} style={{ textAlign:"left", padding:"10px 14px", color:C.textMuted, fontWeight:600, fontSize:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((c,i)=>{
+                  const tag = TAGS.find(t=>t.v===c.tag)||TAGS[0];
+                  return (
+                    <tr key={c.id} style={{ borderBottom:i<filtered.length-1?`1px solid ${C.border}`:"none" }}>
+                      <td style={{ padding:"11px 14px" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                          <div style={{ width:34, height:34, borderRadius:"50%", background:tag.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700, color:tag.color, flexShrink:0 }}>
+                            {c.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span style={{ fontWeight:600, color:C.text }}>{c.name}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding:"11px 14px" }}>
+                        <p style={{ color:C.text, margin:"0 0 1px", fontSize:12 }}>{c.phone||"—"}</p>
+                        <p style={{ color:C.textMuted, margin:0, fontSize:11 }}>{c.email||"—"}</p>
+                      </td>
+                      <td style={{ padding:"11px 14px" }}>
+                        <span style={{ background:tag.bg, color:tag.color, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:4 }}>{tag.label}</span>
+                      </td>
+                      <td style={{ padding:"11px 14px", color:C.textMuted, fontSize:12, maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c.notes||"—"}</td>
+                      <td style={{ padding:"11px 14px", color:C.textMuted, fontSize:12 }}>{c.since}</td>
+                      <td style={{ padding:"11px 14px" }}>
+                        <button onClick={()=>removeCustomer(c.id)} style={{ background:C.dangerBg, border:`1px solid ${C.danger}`, borderRadius:4, padding:"3px 9px", fontSize:11, color:C.danger, cursor:"pointer" }}>Remove</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Add customer modal */}
+        {showAdd && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:12, padding:"1.75rem", width:460, maxWidth:"95vw" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1.25rem" }}>
+                <h2 style={{ fontSize:18, fontWeight:700, color:C.text, margin:0, letterSpacing:"-0.02em" }}>Add Customer</h2>
+                <button onClick={()=>setShowAdd(false)} style={{ background:C.surfaceHigh, border:"none", width:28, height:28, borderRadius:4, fontSize:14, cursor:"pointer", color:C.textMuted }}>✕</button>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+                <Inp label="Full Name *"  value={form.name}  onChange={v=>setForm({...form,name:v})}  ph="Maria Santos"/>
+                <Inp label="Phone"        value={form.phone} onChange={v=>setForm({...form,phone:v})} ph="+1 (416) 555-0100"/>
+              </div>
+              <Inp label="Email" value={form.email} onChange={v=>setForm({...form,email:v})} ph="customer@email.com"/>
+              <div style={{ marginBottom:12 }}>
+                <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Customer Type</label>
+                <div style={{ display:"flex", gap:7 }}>
+                  {TAGS.map(tag=>(
+                    <button key={tag.v} onClick={()=>setForm({...form,tag:tag.v})} style={{
+                      flex:1, padding:"8px 4px", border:`1px solid ${form.tag===tag.v?tag.color:C.border}`,
+                      borderRadius:5, background:form.tag===tag.v?tag.bg:"transparent",
+                      color:form.tag===tag.v?tag.color:C.textMuted, fontSize:12, fontWeight:form.tag===tag.v?700:400, cursor:"pointer"
+                    }}>{tag.label}</button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom:16 }}>
+                <label style={{ fontSize:10, fontWeight:600, color:C.textMuted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.08em" }}>Notes</label>
+                <textarea value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} rows={2} placeholder="e.g. Orders sourdough every Friday, allergic to nuts..."
+                  style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, borderRadius:5, fontSize:13, color:C.text, background:C.surfaceHigh, outline:"none", resize:"none", boxSizing:"border-box" }}/>
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={()=>setShowAdd(false)} style={{ flex:1, padding:"10px", border:`1px solid ${C.border}`, borderRadius:5, background:"transparent", color:C.textMuted, cursor:"pointer", fontSize:13 }}>Cancel</button>
+                <button onClick={addCustomer} disabled={!form.name.trim()} style={{ flex:2, padding:"10px", background:form.name.trim()?C.accent:"rgba(196,98,45,0.3)", color:"#FFF", border:"none", borderRadius:5, cursor:"pointer", fontSize:13, fontWeight:700 }}>
+                  Add Customer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ display:"flex", height:"100vh", fontFamily:"'DM Sans', system-ui, sans-serif", background:C.bg, overflow:"hidden" }}>
       <ProfilePanel/>
@@ -2068,6 +2224,7 @@ function SellerApp({ user, onSignOut }) {
         {view==="dashboard"  && <Dashboard/>}
         {view==="storefront" && <Storefront/>}
         {view==="orders"     && <Orders/>}
+        {view==="customers"  && <Customers/>}
         {view==="finances"   && <Finances/>}
         {view==="delivery"   && <Delivery/>}
         {view==="community"  && <SellerCommunity/>}
