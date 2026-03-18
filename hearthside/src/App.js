@@ -757,7 +757,8 @@ function CustomerApp({ user, onSignOut }) {
       if (!user?.id) { setLoadingMyOrders(false); return; }
       supabase.from("orders").select("*").eq("customer_id", user.id).order("created_at", { ascending:false })
         .then(({ data })=>{ if (data) setMyOrders(data.map(o=>({ ...o, date:new Date(o.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric"}) }))); setLoadingMyOrders(false); });
-    }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     if (loadingMyOrders) return <div style={{ padding:"2rem", textAlign:"center", color:C.textMuted, fontSize:13 }}>Loading...</div>;
     return (
       <div style={{ padding:"1.25rem 1.5rem" }}>
@@ -874,7 +875,7 @@ function SellerApp({ user, onSignOut }) {
           <p style={{ color:C.textMuted, fontSize:13, margin:0 }}>Broadcast today's bakes to your local community</p>
         </div>
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"1.25rem", marginBottom:14 }}>
-          <p style={{ fontWeight:600, fontSize:13, color:C.text, margin:"0 0 1rem", textTransform:"uppercase", letterSpacing:"0.06em", fontSize:11, color:C.textMuted }}>New Broadcast</p>
+          <p style={{ fontWeight:600, fontSize:11, color:C.textMuted, margin:"0 0 1rem", textTransform:"uppercase", letterSpacing:"0.06em" }}>New Broadcast</p>
           <div style={{ display:"flex", gap:8, marginBottom:12 }}>
             {[{ v:"neighbourhood", label:`📍 ${user.hood||"Neighbourhood"}` },{ v:"city", label:"🌆 City-wide" }].map(r=>(
               <button key={r.v} onClick={()=>setReach(r.v)} style={{ padding:"6px 14px", border:`1px solid ${reach===r.v?C.chat:C.border}`, borderRadius:4, background:reach===r.v?C.chatBg:"transparent", color:reach===r.v?C.chat:C.textMuted, fontSize:12, fontWeight:500, cursor:"pointer" }}>{r.label}</button>
@@ -1042,7 +1043,8 @@ function SellerApp({ user, onSignOut }) {
       if (!user?.id) { setLoadingOrders(false); return; }
       supabase.from("orders").select("*").eq("seller_id", user.id.toString()).order("created_at",{ ascending:false })
         .then(({ data })=>{ if (data&&data.length>0) setLiveOrders(data.map(o=>({ ...o, customer:o.customer_id?.slice(0,8)||"Customer", date:new Date(o.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric"}) }))); setLoadingOrders(false); });
-    }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     const filtered = filter==="all"?liveOrders:liveOrders.filter(o=>o.status===filter);
     if (loadingOrders) return <div style={{ padding:"2rem", textAlign:"center", color:C.textMuted, fontSize:13 }}>Loading orders...</div>;
     return (
