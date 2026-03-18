@@ -1557,7 +1557,7 @@ function SellerApp({ user, onSignOut }) {
                         ✏ Edit Product
                       </button>
                   </div>
-                </>
+                </div>
               )}
 
               {/* ── EDIT MODE (right side) ── */}
