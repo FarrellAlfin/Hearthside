@@ -877,6 +877,7 @@ function SellerApp({ user, onSignOut }) {
   const [finRevenue,  setFinRevenue]  = useState("");
   const [finCosts,    setFinCosts]    = useState([]);
   const [finHistory,  setFinHistory]  = useState([]); // [{month, revenue, costs:[]}]
+  const revenueInputRef = useRef(null); // uncontrolled ref — prevents focus loss
 
   useEffect(()=>{
     if (!user?.id) { setProducts([]); setLoadingProducts(false); return; }
@@ -1714,10 +1715,11 @@ function SellerApp({ user, onSignOut }) {
     const COST_CATS = COST_CATS_DEF;
     const costs   = finCosts;
     const setCosts   = setFinCosts;
-    // Local revenue input — avoids parent re-render focus loss
-    const [localRevenue, setLocalRevenue] = useState(finRevenue);
-    const revenue = localRevenue;
-    const setRevenue = (v) => { setLocalRevenue(v); setFinRevenue(v); };
+    // Uncontrolled input via ref — the ONLY way to prevent focus loss
+    // when the component is defined inside a parent that re-renders.
+    // We commit the value to finRevenue on blur only.
+    const revenue = finRevenue;
+    const setRevenue = setFinRevenue;
     const [newCat,    setNewCat]    = useState("ingredients");
     const [newLabel,  setNewLabel]  = useState("");
     const [newAmt,    setNewAmt]    = useState("");
@@ -1736,7 +1738,10 @@ function SellerApp({ user, onSignOut }) {
     const loadMonth = (entry) => {
       saveMonthToHistory();
       setFinMonth(entry.month);
-      setFinRevenue(String(entry.revenue||""));
+      const rv = String(entry.revenue||"");
+      setFinRevenue(rv);
+      // Sync uncontrolled input DOM value when loading a month
+      if (revenueInputRef.current) revenueInputRef.current.value = rv;
       setFinCosts(entry.costs||[]);
     };
 
@@ -1746,6 +1751,7 @@ function SellerApp({ user, onSignOut }) {
       const next = `${MONTHS[now2.getMonth()]} ${now2.getFullYear()}`;
       setFinMonth(next);
       setFinRevenue("");
+      if (revenueInputRef.current) revenueInputRef.current.value = "";
       setFinCosts([]);
     };
 
@@ -1859,8 +1865,9 @@ function SellerApp({ user, onSignOut }) {
             <div style={{ position:"relative" }}>
               <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:14, color:C.textMuted, fontWeight:600 }}>$</span>
               <input
-                value={revenue}
-                onChange={e=>{ const v=e.target.value; if(v===""||/^\d*\.?\d*$/.test(v)) setRevenue(v); }}
+                ref={revenueInputRef}
+                defaultValue={finRevenue}
+                onBlur={e=>{ const v=e.target.value.trim(); setFinRevenue(v); }}
                 placeholder="0.00"
                 type="text"
                 inputMode="decimal"
